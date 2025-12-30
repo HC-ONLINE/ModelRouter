@@ -4,6 +4,7 @@
 # Linting y formato
 black==24.10.0
 flake8==7.1.1
+pre-commit==4.0.1
 
 # Type checking
 mypy==1.13.0

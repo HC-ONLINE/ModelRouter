@@ -18,7 +18,9 @@ disallow_untyped_defs = true
 module = [
     "httpx.*",
     "redis.*",
-    "prometheus_client.*"
+    "prometheus_client.*",
+    "pythonjsonlogger.*",
+    "uvicorn.*"
 ]
 ignore_missing_imports = true
 

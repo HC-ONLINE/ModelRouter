@@ -1,32 +1,38 @@
 """
 Métricas Prometheus para observabilidad.
 """
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+
+from prometheus_client import (
+    Counter,
+    Histogram,
+    Gauge,
+    generate_latest,
+    CONTENT_TYPE_LATEST,
+)
 from fastapi import Response
-import time
 
 
 # ========== Contadores ==========
 
 # Requests totales por endpoint y método
 request_total = Counter(
-    'modelrouter_requests_total',
-    'Total de requests recibidas',
-    ['route', 'method', 'status']
+    "modelrouter_requests_total",
+    "Total de requests recibidas",
+    ["route", "method", "status"],
 )
 
 # Fallos de proveedores
 provider_failures_total = Counter(
-    'modelrouter_provider_failures_total',
-    'Total de fallos por proveedor',
-    ['provider', 'reason']
+    "modelrouter_provider_failures_total",
+    "Total de fallos por proveedor",
+    ["provider", "reason"],
 )
 
 # Éxitos de proveedores
 provider_success_total = Counter(
-    'modelrouter_provider_success_total',
-    'Total de generaciones exitosas por proveedor',
-    ['provider']
+    "modelrouter_provider_success_total",
+    "Total de generaciones exitosas por proveedor",
+    ["provider"],
 )
 
 
@@ -34,18 +40,18 @@ provider_success_total = Counter(
 
 # Latencia de requests
 request_latency_seconds = Histogram(
-    'modelrouter_request_latency_seconds',
-    'Latencia de requests en segundos',
-    ['route'],
-    buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0, 120.0)
+    "modelrouter_request_latency_seconds",
+    "Latencia de requests en segundos",
+    ["route"],
+    buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0, 120.0),
 )
 
 # Tokens generados (si disponible)
 tokens_generated = Histogram(
-    'modelrouter_tokens_generated',
-    'Tokens generados por request',
-    ['provider'],
-    buckets=(10, 50, 100, 250, 500, 1000, 2000, 4000)
+    "modelrouter_tokens_generated",
+    "Tokens generados por request",
+    ["provider"],
+    buckets=(10, 50, 100, 250, 500, 1000, 2000, 4000),
 )
 
 
@@ -53,19 +59,19 @@ tokens_generated = Histogram(
 
 # Streams activos
 active_streams = Gauge(
-    'modelrouter_active_streams',
-    'Número de streams activos actualmente'
+    "modelrouter_active_streams", "Número de streams activos actualmente"
 )
 
 # Proveedores blacklisted
 providers_blacklisted = Gauge(
-    'modelrouter_providers_blacklisted',
-    'Número de proveedores en blacklist',
-    ['provider']
+    "modelrouter_providers_blacklisted",
+    "Número de proveedores en blacklist",
+    ["provider"],
 )
 
 
 # ========== Funciones de ayuda ==========
+
 
 def record_request(route: str, method: str, status: int) -> None:
     """Registra una request."""
@@ -109,14 +115,12 @@ def set_provider_blacklisted(provider: str, is_blacklisted: bool) -> None:
 
 # ========== Endpoint de métricas ==========
 
+
 def get_metrics() -> Response:
     """
     Genera respuesta con métricas en formato Prometheus.
-    
+
     Returns:
         Response con métricas
     """
-    return Response(
-        content=generate_latest(),
-        media_type=CONTENT_TYPE_LATEST
-    )
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

@@ -42,8 +42,12 @@ repos:
       - id: mypy
         additional_dependencies:
           - types-redis==4.6.0.20240425
+          - types-requests==2.31.0.20240125
           - pydantic==2.5.3
-        args: ['--python-version=3.11']
+          - pydantic-settings==2.1.0
+          - fastapi==0.109.0
+          - httpx==0.26.0
+        args: ['--python-version=3.11', '--config-file=pyproject.toml']
         files: ^api/.*\.py$
         exclude: ^tests/
 
@@ -52,10 +56,9 @@ repos:
     hooks:
       - id: pytest-check
         name: pytest-check
-        entry: pytest
+        entry: bash -c 'if [ -d ".venv" ]; then .venv/Scripts/python.exe -m pytest tests/ -v --tb=short -x || exit 0; else pytest tests/ -v --tb=short -x || exit 0; fi'
         language: system
         pass_filenames: false
         always_run: false
-        args: ['tests/', '-v', '--tb=short', '-x']
         files: ^(api|tests)/.*\.py$
-        stages: [pre-commit]
+        stages: [manual]

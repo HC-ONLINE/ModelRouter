@@ -9,6 +9,12 @@ pre-commit==4.0.1
 # Type checking
 mypy==1.13.0
 types-redis==4.6.0.20240425
+types-requests==2.31.0.20240125
+typing-extensions==4.12.2
+
+# Instalar stubs inline para las bibliotecas que no los tienen
+fastapi  # Tiene stubs propios
+pydantic  # Tiene stubs propios
 
 # Testing
 pytest==8.3.4

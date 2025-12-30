@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened]
 
 jobs:
   quality:
@@ -69,6 +70,11 @@ jobs:
     needs: [quality, test]
     if: github.event_name == 'push'
 
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
     steps:
     - uses: actions/checkout@v4
 
@@ -92,9 +98,9 @@ jobs:
         output: 'trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
         exit-code: '1'
-
     - name: Upload SARIF
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: 'trivy-results.sarif'
+        category: 'trivy-container-scan'
       if: always()

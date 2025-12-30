@@ -75,7 +75,7 @@ async def test_groq_adapter_stream_success(mock_http_client, sample_request):
         b'data: [DONE]\n\n'
     ]
     
-    async def mock_stream():
+    async def mock_stream(**kwargs):
         for chunk in sse_data:
             yield chunk
     

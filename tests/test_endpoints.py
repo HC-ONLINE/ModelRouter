@@ -3,6 +3,7 @@ Tests de integración end-to-end para endpoints.
 """
 import pytest
 from httpx import AsyncClient, ASGITransport
+from unittest.mock import AsyncMock
 
 from api.main import app
 
@@ -10,6 +11,10 @@ from api.main import app
 @pytest.fixture
 async def client():
     """Fixture de cliente HTTP async."""
+    # Mock del state para evitar que el lifespan se ejecute
+    app.state.providers = []
+    app.state.redis_client = AsyncMock()
+    
     transport = ASGITransport(app=app)  # type: ignore[arg-type]
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac

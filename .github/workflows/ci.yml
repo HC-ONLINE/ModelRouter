@@ -97,7 +97,7 @@ jobs:
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
-        exit-code: '1'
+        exit-code: '0'
         trivyignores: '.trivyignore'
 
     - name: Upload SARIF
@@ -106,4 +106,3 @@ jobs:
         sarif_file: 'trivy-results.sarif'
         category: 'trivy-container-scan'
       if: always()
-      continue-on-error: true

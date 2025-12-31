@@ -104,3 +104,4 @@ jobs:
         sarif_file: 'trivy-results.sarif'
         category: 'trivy-container-scan'
       if: always()
+      continue-on-error: true

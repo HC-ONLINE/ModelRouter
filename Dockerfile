@@ -1,5 +1,5 @@
-# Imagen base con Python 3.11
-FROM python:3.11-slim
+# Imagen base con Python 3.11 (Alpine es más ligera y segura)
+FROM python:3.11-slim-bookworm as builder
 
 # Variables de entorno para Python
 ENV PYTHONUNBUFFERED=1 \
@@ -10,14 +10,29 @@ ENV PYTHONUNBUFFERED=1 \
 # Directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema si son necesarias
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Actualizar paquetes del sistema para parches de seguridad
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements e instalar dependencias
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.11-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+# Actualizar sistema base
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
+# Copiar dependencias instaladas
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copiar código fuente
 COPY api/ ./api/

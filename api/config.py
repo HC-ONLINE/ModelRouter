@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     # Aplicación
     app_env: str = "development"
     app_name: str = "ModelRouter"
-    app_version: str = "1.0.0"
+    app_version: str = "0.1.0"
     log_level: str = "INFO"
 
     # Servidor

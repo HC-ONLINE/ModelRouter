@@ -11,6 +11,7 @@ import logging
 from api.providers.base import ProviderAdapter
 from api.schemas import ChatRequest, ChatResponse, ProviderError
 from api.infra.redis_client import RedisClient
+from api.config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class Router:
     Responsabilidades:
     - Mantener lista ordenada de proveedores
     - Verificar blacklist antes de intentar cada proveedor
+    - Verificar rate limits por proveedor
     - Coordinar fallback si un proveedor falla
     - Actualizar estado en Redis (blacklist, contadores)
     """
@@ -30,6 +32,7 @@ class Router:
         self,
         providers: Sequence[ProviderAdapter],
         redis_client: RedisClient,
+        settings: Settings,
         first_chunk_timeout: float = 3.0,
         backoff_base: int = 5,
         backoff_max: int = 300,
@@ -40,12 +43,14 @@ class Router:
         Args:
             providers: Lista ordenada de proveedores (el primero tiene más prioridad)
             redis_client: Cliente Redis para gestión de estado
+            settings: Configuración de la aplicación
             first_chunk_timeout: Timeout para esperar el primer chunk en streaming
             backoff_base: Segundos base para backoff exponencial
             backoff_max: Máximo de segundos para backoff
         """
         self.providers = list(providers)
         self.redis = redis_client
+        self.settings = settings
         self.first_chunk_timeout = first_chunk_timeout
         self.backoff_base = backoff_base
         self.backoff_max = backoff_max
@@ -150,7 +155,13 @@ class Router:
                 )
                 continue
 
-            logger.info(f"[{request_id}] Intentando con proveedor: {provider.name}")
+            # Verificar rate limit específico del proveedor
+            rate_limit_error = await self._check_provider_rate_limit(
+                provider, request_id
+            )
+            if rate_limit_error:
+                last_error = rate_limit_error
+                continue
 
             try:
                 # Iniciar streaming
@@ -247,7 +258,13 @@ class Router:
                 )
                 continue
 
-            logger.info(f"[{request_id}] Intentando con proveedor: {provider.name}")
+            # Verificar rate limit específico del proveedor
+            rate_limit_error = await self._check_provider_rate_limit(
+                provider, request_id
+            )
+            if rate_limit_error:
+                last_error = rate_limit_error
+                continue
 
             try:
                 response = await provider.generate(request)
@@ -293,3 +310,33 @@ class Router:
             message=error_msg,
             retriable=False,
         )
+
+    async def _check_provider_rate_limit(
+        self, provider: ProviderAdapter, request_id: str
+    ) -> Optional[ProviderError]:
+        provider_rate_limit = self.settings.get_provider_rate_limit(provider.name)
+
+        allowed, remaining = await self.redis.check_provider_rate_limit(
+            provider_name=provider.name,
+            user_id=request_id,
+            max_requests=provider_rate_limit,
+            window_seconds=60,
+        )
+
+        if not allowed:
+            logger.warning(
+                f"[{request_id}] Rate limit excedido para {provider.name}, saltando"
+            )
+            return ProviderError(
+                provider=provider.name,
+                code="RATE_LIMIT",
+                message=f"Rate limit de {provider_rate_limit} req/min excedido",
+                retriable=True,
+            )
+
+        logger.info(
+            f"[{request_id}] Intentando con proveedor: {provider.name} "
+            f"(rate limit: {remaining}/{provider_rate_limit} restantes)"
+        )
+
+        return None

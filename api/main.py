@@ -85,6 +85,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     router_instance = Router(
         providers=providers_seq,
         redis_client=redis_client,
+        settings=settings,
         first_chunk_timeout=settings.first_chunk_timeout,
         backoff_base=settings.backoff_base_seconds,
         backoff_max=settings.backoff_max_seconds,

@@ -45,12 +45,35 @@ class Settings(BaseSettings):
     rate_limit_requests_per_minute: int = 60
     max_concurrent_streams: int = 10
 
+    # Rate limiting por proveedor (requests por minuto - RPM)
+    # Valores por defecto para planes gratuitos.
+    # El límite global solo se usa si se elimina explícitamente este campo.
+    groq_rate_limit: int = 30
+    openrouter_rate_limit: int = 20
+
     # Autenticación
     api_key: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
+
+    def get_provider_rate_limit(self, provider_name: str) -> int:
+        """
+        Obtiene el rate limit específico para un proveedor.
+        Si no está configurado, usa el límite global.
+
+        Args:
+            provider_name: Nombre del proveedor (groq, openrouter, etc.)
+
+        Returns:
+            Rate limit en requests por minuto
+        """
+        provider_limits = {
+            "groq": self.groq_rate_limit,
+            "openrouter": self.openrouter_rate_limit,
+        }
+        return provider_limits.get(provider_name) or self.rate_limit_requests_per_minute
 
 
 # Instancia global de configuración

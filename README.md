@@ -332,8 +332,28 @@ Todas las configuraciones están en [app/config.py](app/config.py) y se pueden s
 | `MAX_OPERATION_TIMEOUT`          | Timeout global operación (s)         | `120.0`                      |
 | `BACKOFF_BASE_SECONDS`           | Backoff base exponencial             | `5`                          |
 | `BACKOFF_MAX_SECONDS`            | Backoff máximo                       | `300`                        |
-| `RATE_LIMIT_REQUESTS_PER_MINUTE` | Rate limit por minuto                | `60`                         |
+| `RATE_LIMIT_REQUESTS_PER_MINUTE` | Rate limit global por minuto         | `60`                         |
+| `GROQ_RATE_LIMIT`                | Rate limit específico Groq (req/min) | Usa límite global            |
+| `OPENROUTER_RATE_LIMIT`          | Rate limit OpenRouter (req/min)      | Usa límite global            |
 | `MAX_CONCURRENT_STREAMS`         | Streams concurrentes máx.            | `10`                         |
+
+### Rate Limiting por Proveedor
+
+El sistema permite configurar límites de requests independientes para cada proveedor.
+Si no se especifica un límite específico, se usa el límite global definido en
+`RATE_LIMIT_REQUESTS_PER_MINUTE`.
+
+**Ejemplo de configuración:**
+
+```env
+# Límite global (fallback)
+RATE_LIMIT_REQUESTS_PER_MINUTE=60
+
+# Límites específicos por proveedor (opcional)
+# Útil para planes o límites conocidos del proveedor
+GROQ_RATE_LIMIT=30
+OPENROUTER_RATE_LIMIT=20
+```
 
 ---
 
@@ -429,6 +449,7 @@ ModelRouter/
 - [x] Métricas y logging
 - [x] Tests unitarios
 - [x] CI/CD
+- [x] Rate Limiting por proveedor
 
 ### Próximos pasos
 

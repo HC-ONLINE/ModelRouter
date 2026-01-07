@@ -197,3 +197,45 @@ def test_release_slot():
 
     asyncio.run(r.release_slot("res"))
     assert store["concurrency:res"] == "1"
+
+
+@pytest.mark.asyncio
+def test_check_provider_rate_limit():
+    r = RedisClient(redis_url="redis://localhost:6379/0")
+    store = {}
+    mock_redis = AsyncMock(spec=Redis)
+
+    async def get_func(key):
+        return store.get(key)
+
+    async def setex_func(key, window_seconds, value):
+        store[key] = value
+        return True
+
+    async def incr_func(key):
+        store[key] = str(int(store.get(key, "0")) + 1)
+        return int(store[key])
+
+    mock_redis.get.side_effect = get_func
+    mock_redis.setex.side_effect = setex_func
+    mock_redis.incr.side_effect = incr_func
+    r.client = mock_redis
+    import asyncio
+
+    # Primera llamada para groq
+    allowed, remaining = asyncio.run(
+        r.check_provider_rate_limit("groq", "user123", 10, 60)
+    )
+    assert allowed is True and remaining == 9
+    assert "ratelimit:groq:user123" in store
+    # Segunda llamada para el mismo proveedor y usuario
+    allowed, remaining = asyncio.run(
+        r.check_provider_rate_limit("groq", "user123", 10, 60)
+    )
+    assert allowed is True and remaining == 8
+    # Primera llamada para openrouter (diferente contador)
+    allowed, remaining = asyncio.run(
+        r.check_provider_rate_limit("openrouter", "user123", 5, 60)
+    )
+    assert allowed is True and remaining == 4
+    assert "ratelimit:openrouter:user123" in store

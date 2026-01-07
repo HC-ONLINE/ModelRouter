@@ -150,6 +150,24 @@ class RedisClient:
         await client.incr(key)
         return True, max_requests - count - 1
 
+    async def check_provider_rate_limit(
+        self, provider_name: str, user_id: str, max_requests: int, window_seconds: int
+    ) -> tuple[bool, int]:
+        """
+        Verifica y actualiza rate limit para un proveedor específico.
+
+        Args:
+            provider_name: Nombre del proveedor (groq, openrouter, etc.)
+            user_id: Identificador del usuario/cliente
+            max_requests: Máximo de requests permitidas
+            window_seconds: Ventana de tiempo en segundos
+
+        Returns:
+            Tupla (permitido, requests_restantes)
+        """
+        identifier = f"{provider_name}:{user_id}"
+        return await self.check_rate_limit(identifier, max_requests, window_seconds)
+
     # ========== Concurrencia ==========
 
     async def acquire_slot(self, resource: str, max_slots: int, ttl: int = 300) -> bool:

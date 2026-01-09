@@ -109,6 +109,8 @@ async def chat(
             status_code = 429
         elif e.code in ["UNAUTHORIZED", "FORBIDDEN"]:
             status_code = 403
+        elif e.code == "INVALID_PROVIDER":
+            status_code = 400
         elif e.code == "ALL_PROVIDERS_FAILED":
             status_code = 503
         else:

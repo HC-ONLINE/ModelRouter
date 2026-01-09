@@ -147,6 +147,36 @@ class Router:
         """
         last_error: Optional[ProviderError] = None
 
+        # Si el cliente especificó un proveedor, intentar solo ese proveedor.
+        if getattr(request, "provider", None):
+            target = await self._get_validated_requested_provider(request, request_id)
+            try:
+                stream = target.stream(request)
+                first_chunk, full_stream = await self._wait_for_first_chunk(
+                    stream, self.first_chunk_timeout
+                )
+                if first_chunk is None:
+                    raise ProviderError(
+                        provider=target.name,
+                        code="NO_FIRST_CHUNK",
+                        message=f"Proveedor '{target.name}' no emitió primer chunk",
+                        retriable=True,
+                    )
+                async for chunk in full_stream:
+                    yield chunk
+                await self._mark_provider_success(target)
+                return
+            except ProviderError:
+                # Propagar el error tal cual (sin fallback a otros proveedores)
+                raise
+            except Exception as e:
+                raise ProviderError(
+                    provider=target.name,
+                    code="UNKNOWN_ERROR",
+                    message=str(e),
+                    retriable=False,
+                )
+
         for provider in self.providers:
             # Verificar blacklist
             if await self.redis.is_provider_blacklisted(provider.name):
@@ -250,6 +280,25 @@ class Router:
         """
         last_error: Optional[ProviderError] = None
 
+        # Si el cliente especificó un proveedor, intentar solo ese proveedor.
+
+        if getattr(request, "provider", None):
+            target = await self._get_validated_requested_provider(request, request_id)
+            try:
+                response = await target.generate(request)
+                await self._mark_provider_success(target)
+                return response
+            except ProviderError:
+                # Propagar el error sin intentar otros proveedores
+                raise
+            except Exception as e:
+                raise ProviderError(
+                    provider=target.name,
+                    code="UNKNOWN_ERROR",
+                    message=str(e),
+                    retriable=False,
+                )
+
         for provider in self.providers:
             # Verificar blacklist
             if await self.redis.is_provider_blacklisted(provider.name):
@@ -340,3 +389,32 @@ class Router:
         )
 
         return None
+
+    async def _get_validated_requested_provider(
+        self, request: ChatRequest, request_id: str
+    ) -> ProviderAdapter:
+        """
+        Resuelve y valida el proveedor solicitado en el request.
+        Lanza ProviderError si no existe, está en blacklist o excede rate limit.
+        Devuelve el ProviderAdapter listo para usar.
+        """
+        requested_provider = getattr(request, "provider", None)
+        target = next((p for p in self.providers if p.name == requested_provider), None)
+        if not target:
+            raise ProviderError(
+                provider="router",
+                code="INVALID_PROVIDER",
+                message=f"Proveedor '{requested_provider}' no está configurado",
+                retriable=False,
+            )
+        if await self.redis.is_provider_blacklisted(target.name):
+            raise ProviderError(
+                provider="router",
+                code="PROVIDER_UNAVAILABLE",
+                message=f"Proveedor '{requested_provider}' no disponible (blacklisted)",
+                retriable=False,
+            )
+        rate_limit_error = await self._check_provider_rate_limit(target, request_id)
+        if rate_limit_error:
+            raise rate_limit_error
+        return target

@@ -40,6 +40,9 @@ class ChatRequest(BaseModel):
     model: Optional[str] = Field(
         default=None, description="Modelo específico a usar (opcional)"
     )
+    provider: Optional[str] = Field(
+        default=None, description="Proveedor específico a usar (opcional)"
+    )
 
     @field_validator("messages")
     @classmethod

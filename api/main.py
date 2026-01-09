@@ -19,6 +19,7 @@ from api.infra.redis_client import create_redis_client
 from api.providers.base import ProviderAdapter
 from api.providers.groq_adapter import GroqAdapter
 from api.providers.openrouter_adapter import OpenRouterAdapter
+from api.providers.ollama_adapter import OllamaAdapter
 from api.router import Router
 from api.orchestrator import Orchestrator
 from api.controllers import chat
@@ -71,8 +72,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("Proveedor OpenRouter configurado")
     else:
         logger.warning(
-            "OPENROUTER_API_KEY no configurada, " "OpenRouter no estará disponible"
+            "OPENROUTER_API_KEY no configurada, OpenRouter no estará disponible"
         )
+
+    # Ollama: siempre intentar configurar (no requiere API key obligatoria)
+    try:
+        ollama_adapter = OllamaAdapter(
+            http_client=http_client,
+            api_key=settings.ollama_api_key or "",
+            base_url=settings.ollama_base_url,
+            timeout=settings.provider_timeout,
+        )
+        providers.append(ollama_adapter)
+        logger.info(f"Proveedor Ollama configurado en {settings.ollama_base_url}")
+    except Exception as e:
+        logger.warning(f"No se pudo configurar Ollama: {str(e)}")
 
     if not providers:
         logger.error(

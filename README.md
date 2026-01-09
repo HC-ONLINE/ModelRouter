@@ -11,16 +11,16 @@
 
 ## Características
 
-**Orquestación multi-proveedor** con fallback automático (Groq → OpenRouter → Ollama)  
- **Soporte para Ollama** (modelos locales) además de proveedores cloud  
- **Streaming SSE** (Server-Sent Events) para respuestas en tiempo real  
- **Arquitectura por capas** (Controllers → Orchestrator → Router → Adapters)  
- **Rate limiting** y control de concurrencia con Redis  
- **Blacklist temporal** con backoff exponencial ante fallos  
- **Métricas Prometheus** + logs estructurados JSON  
- **Tests unitarios** con >80% cobertura  
- **Contenerización Docker** + docker-compose  
- **CI/CD con GitHub Actions**  
+**Orquestación multi-proveedor** con fallback automático (Groq → OpenRouter → Ollama)
+ **Soporte para Ollama** (modelos locales) además de proveedores cloud
+ **Streaming SSE** (Server-Sent Events) para respuestas en tiempo real
+ **Arquitectura por capas** (Controllers → Orchestrator → Router → Adapters)
+ **Rate limiting** y control de concurrencia con Redis
+ **Blacklist temporal** con backoff exponencial ante fallos
+ **Métricas Prometheus** + logs estructurados JSON
+ **Tests unitarios** con >80% cobertura
+ **Contenerización Docker** + docker-compose
+ **CI/CD con GitHub Actions**
 
 ---
 
@@ -145,7 +145,7 @@ Authorization: Bearer tu_api_key
 
 ### Endpoint `/chat` (no streaming)
 
-**Request:**
+**Request básico (fallback automático):**
 
 ```bash
 curl -X POST http://localhost:8000/chat \
@@ -159,6 +159,32 @@ curl -X POST http://localhost:8000/chat \
     "temperature": 0.7
   }'
 ```
+
+**Request especificando proveedor:**
+
+Puedes forzar el uso de un proveedor concreto (por ejemplo, `ollama`, `groq`, `openrouter`) añadiendo el campo opcional `provider`:
+
+```bash
+curl -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer tu_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "¿Qué es FastAPI?"}
+    ],
+    "max_tokens": 200,
+    "temperature": 0.7,
+    "provider": "ollama"
+  }'
+```
+
+**Valores válidos para `provider`:**
+
+- `groq`
+- `openrouter`
+- `ollama`
+
+Si el proveedor no existe o está deshabilitado, recibirás un error 400 o 503.
 
 **Response:**
 
@@ -448,19 +474,19 @@ ModelRouter/
 
 ### Completado
 
-- [x] Scaffold proyecto + Docker
-- [x] Adapters Groq, OpenRouter y Ollama
-- [x] Router con fallback
-- [x] Orchestrator
-- [x] Endpoints /chat y /stream
-- [x] Métricas y logging
-- [x] Tests unitarios
-- [x] CI/CD
-- [x] Rate Limiting por proveedor
+- [X] Scaffold proyecto + Docker
+- [X] Adapters Groq, OpenRouter y Ollama
+- [X] Router con fallback
+- [X] Orchestrator
+- [X] Endpoints /chat y /stream
+- [X] Métricas y logging
+- [X] Tests unitarios
+- [X] CI/CD
+- [X] Definir Rate Limiting por proveedor
+- [X] Permitir especificar de forma opcional un proveedor en la request
 
 ### Próximos pasos
 
-- [ ] Permitir especificar de forma opcional un proveedor en la request
 - [ ] Selección Explícita de Modelo por Proveedor
 - [ ] Persistencia de historiales (PostgreSQL)
 - [ ] Soporte para más proveedores (Anthropic, OpenAI)

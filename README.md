@@ -11,7 +11,8 @@
 
 ## Características
 
- **Orquestación multi-proveedor** con fallback automático (Groq → OpenRouter)  
+**Orquestación multi-proveedor** con fallback automático (Groq → OpenRouter → Ollama)  
+ **Soporte para Ollama** (modelos locales) además de proveedores cloud  
  **Streaming SSE** (Server-Sent Events) para respuestas en tiempo real  
  **Arquitectura por capas** (Controllers → Orchestrator → Router → Adapters)  
  **Rate limiting** y control de concurrencia con Redis  
@@ -33,37 +34,37 @@
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
 │                    Controllers                              │
-│  • Validación de entrada (Pydantic)                        │
-│  • Autorización (API Key)                                  │
-│  • Manejo de SSE                                           │
+│  • Validación de entrada (Pydantic)                         │
+│  • Autorización (API Key)                                   │
+│  • Manejo de SSE                                            │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
 │                   Orchestrator                              │
-│  • Timeout global de operación                             │
-│  • Coordinación de streaming                               │
-│  • Manejo de cancelación                                   │
+│  • Timeout global de operación                              │
+│  • Coordinación de streaming                                │
+│  • Manejo de cancelación                                    │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
 │                      Router                                 │
-│  • Selección de proveedor                                  │
-│  • Fallback automático                                     │
-│  • Blacklist + backoff exponencial                         │
-│  • Estado en Redis                                         │
+│  • Selección de proveedor                                   │
+│  • Fallback automático                                      │
+│  • Blacklist + backoff exponencial                          │
+│  • Estado en Redis                                          │
 └─────────────────────┬───────────────────────────────────────┘
                       │
-        ┌─────────────┴─────────────┐
-        │                           │
-┌───────▼────────┐         ┌────────▼───────┐
-│  GroqAdapter   │         │ OpenRouter     │
-│                │         │    Adapter     │
-│  • Traducción  │         │  • Traducción  │
-│    de request  │         │    de request  │
-│  • Stream SSE  │         │  • Stream SSE  │
-└───────┬────────┘         └────────┬───────┘
-        │                           │
-        └─────────────┬─────────────┘
+        ┌─────────────┴─────────────┬─────────────────┐
+        │                           │                 │
+┌───────▼────────┐         ┌────────▼───────┐    ┌────▼────────┐
+│  GroqAdapter   │         │ OpenRouter     │    │   Ollama    │
+│                │         │    Adapter     │    │   Adapter   │
+│  • Traducción  │         │  • Traducción  │    │ • Modelos   │
+│    de request  │         │    de request  │    │   locales   │
+│  • Stream SSE  │         │  • Stream SSE  │    │ • Stream    │
+└───────┬────────┘         └────────┬───────┘    └─────┬───────┘
+        │                           │                  │
+        └─────────────┬─────────────┴──────────────────┘
                       │
               ┌───────▼────────┐
               │  HTTPClient    │
@@ -72,7 +73,7 @@
 
 ┌──────────────────────────────────────────────────┐
 │             Infraestructura                      │
-│  • Redis: blacklist, rate limits, locks         │
+│  • Redis: blacklist, rate limits, locks          │
 │  • Prometheus: métricas                          │
 │  • Logs: JSON estructurado                       │
 └──────────────────────────────────────────────────┘
@@ -88,6 +89,7 @@
 - **Docker** y **Docker Compose**
 - **Redis** (incluido en docker-compose)
 - Claves API de **Groq** y/o **OpenRouter**
+- **Ollama** instalado localmente (opcional, para usar modelos locales)
 
 ### 1. Clonar repositorio
 
@@ -107,6 +109,7 @@ Edita [.env](.env) y añade tus claves API:
 ```env
 GROQ_API_KEY=tu_clave_groq
 OPENROUTER_API_KEY=tu_clave_openrouter
+OLLAMA_API_KEY=tu_clave_ollama
 API_KEY=tu_clave_para_clientes
 ```
 
@@ -325,6 +328,8 @@ Todas las configuraciones están en [app/config.py](app/config.py) y se pueden s
 |----------------------------------|--------------------------------------|------------------------------|
 | `GROQ_API_KEY`                   | Clave API de Groq                    | -                            |
 | `OPENROUTER_API_KEY`             | Clave API de OpenRouter              | -                            |
+| `OLLAMA_API_KEY`                 | Clave API de Ollama (opcional)       | -                            |
+| `OLLAMA_BASE_URL`                | URL de Ollama                        | `http://localhost:11434`     |
 | `API_KEY`                        | Clave para autenticar clientes       | -                            |
 | `REDIS_URL`                      | URL de conexión Redis                | `redis://localhost:6379/0`   |
 | `PROVIDER_TIMEOUT`               | Timeout por proveedor (s)            | `30.0`                       |
@@ -333,7 +338,9 @@ Todas las configuraciones están en [app/config.py](app/config.py) y se pueden s
 | `BACKOFF_BASE_SECONDS`           | Backoff base exponencial             | `5`                          |
 | `BACKOFF_MAX_SECONDS`            | Backoff máximo                       | `300`                        |
 | `RATE_LIMIT_REQUESTS_PER_MINUTE` | Rate limit global por minuto         | `60`                         |
-| `GROQ_RATE_LIMIT`                | Rate limit específico Groq (req/min) | Usa límite global            |
+| `GROQ_RATE_LIMIT`                | Rate limit específico Groq (req/min) | `30`                         |
+| `OPENROUTER_RATE_LIMIT`          | Rate limit OpenRouter (req/min)      | `20`                         |
+| `OLLAMA_RATE_LIMIT`              | Rate limit Ollama (req/min)          | `100`                        |
 | `OPENROUTER_RATE_LIMIT`          | Rate limit OpenRouter (req/min)      | Usa límite global            |
 | `MAX_CONCURRENT_STREAMS`         | Streams concurrentes máx.            | `10`                         |
 
@@ -442,7 +449,7 @@ ModelRouter/
 ### Completado
 
 - [x] Scaffold proyecto + Docker
-- [x] Adapters Groq y OpenRouter
+- [x] Adapters Groq, OpenRouter y Ollama
 - [x] Router con fallback
 - [x] Orchestrator
 - [x] Endpoints /chat y /stream
@@ -453,9 +460,10 @@ ModelRouter/
 
 ### Próximos pasos
 
+- [ ] Permitir especificar de forma opcional un proveedor en la request
+- [ ] Selección Explícita de Modelo por Proveedor
 - [ ] Persistencia de historiales (PostgreSQL)
 - [ ] Soporte para más proveedores (Anthropic, OpenAI)
-- [ ] WebSockets como alternativa a SSE
 - [ ] Cacheo de respuestas frecuentes
 - [ ] Dashboard Grafana pre-configurado
 

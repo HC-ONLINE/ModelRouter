@@ -96,22 +96,7 @@ Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## Configuración del Entorno de Desarrollo
 
-```bash
-# Clonar
-git clone https://github.com/HC-ONLINE/ModelRouter.git
-cd ModelRouter
-
-# Crear entorno virtual
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Instalar dependencias + dev tools
-pip install -r requirements-dev.txt
-
-# Configurar pre-commit hooks (recomendado)
-pip install pre-commit
-pre-commit install
-```
+Sigue los pasos detallados en [Desarrollo Local](docs/development.md) para preparar tu entorno
 
 ## Preguntas
 

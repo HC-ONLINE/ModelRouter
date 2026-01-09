@@ -230,3 +230,84 @@ async def test_router_respects_provider_rate_limits(
     # openrouter debería ser usado
     assert provider2.stream_called
     assert len(chunks) == 3
+
+
+@pytest.mark.asyncio
+async def test_router_uses_only_specified_provider(
+    mock_redis, mock_settings, sample_request
+):
+    """Test: si se especifica provider, solo ese se usa y no hay fallback."""
+    provider1 = MockProvider("groq")
+    provider2 = MockProvider("openrouter")
+
+    router = Router(
+        providers=[provider1, provider2],
+        redis_client=mock_redis,
+        settings=mock_settings,
+        first_chunk_timeout=1.0,
+    )
+
+    req = ChatRequest(
+        messages=[Message(role="user", content="Hola")],
+        max_tokens=100,
+        provider="openrouter",
+    )
+
+    chunks = []
+    async for chunk in router.choose_and_stream(req, "test-req-provider-specific"):
+        chunks.append(chunk)
+
+    assert provider2.stream_called
+    assert not provider1.stream_called
+    assert chunks == ["chunk0", "chunk1", "chunk2"]
+
+
+@pytest.mark.asyncio
+async def test_router_invalid_provider_raises_error(
+    mock_redis, mock_settings, sample_request
+):
+    """Test: si el provider no existe, lanza ProviderError con code INVALID_PROVIDER."""
+    provider1 = MockProvider("groq")
+    router = Router(
+        providers=[provider1],
+        redis_client=mock_redis,
+        settings=mock_settings,
+        first_chunk_timeout=1.0,
+    )
+    req = ChatRequest(
+        messages=[Message(role="user", content="Hola")],
+        max_tokens=100,
+        provider="noexiste",
+    )
+    with pytest.raises(ProviderError) as exc_info:
+        async for _ in router.choose_and_stream(req, "test-req-invalid-provider"):
+            pass
+    assert exc_info.value.code == "INVALID_PROVIDER"
+
+
+@pytest.mark.asyncio
+async def test_router_blacklisted_provider_raises_error(
+    mock_redis, mock_settings, sample_request
+):
+    """Test: si el provider está en blacklist,
+    lanza ProviderError con code PROVIDER_UNAVAILABLE."""
+    provider1 = MockProvider("groq")
+    router = Router(
+        providers=[provider1],
+        redis_client=mock_redis,
+        settings=mock_settings,
+        first_chunk_timeout=1.0,
+    )
+
+    # Simular que groq está blacklisted
+    async def mock_is_blacklisted(provider_name: str) -> bool:
+        return provider_name == "groq"
+
+    mock_redis.is_provider_blacklisted = mock_is_blacklisted
+    req = ChatRequest(
+        messages=[Message(role="user", content="Hola")], max_tokens=100, provider="groq"
+    )
+    with pytest.raises(ProviderError) as exc_info:
+        async for _ in router.choose_and_stream(req, "test-req-blacklisted-provider"):
+            pass
+    assert exc_info.value.code == "PROVIDER_UNAVAILABLE"

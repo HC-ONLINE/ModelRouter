@@ -69,9 +69,11 @@ curl -N -X POST http://localhost:8000/stream \
 
 * [Arquitectura](docs/architecture.md) - Cómo funciona internamente.
 * [Configuración](docs/configuration.md) - Variables de entorno y rate limits.
+* [Ejemplos de Uso](docs/examples.md) - Ejemplos con `curl` y `fetch`.
 * [Desarrollo](docs/development.md) - Guía para contribuir, tests y linting.
 * [Observabilidad](docs/observability.md) - Métricas y Logs.
 * [Seguridad](docs/security.md) - Notas de seguridad y legal.
+
 Estos documentos están en la carpeta `docs/`.
 
 ---

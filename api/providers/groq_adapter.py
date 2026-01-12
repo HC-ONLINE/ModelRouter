@@ -6,10 +6,12 @@ Implementa el contrato ProviderAdapter para interactuar con Groq.
 from collections.abc import AsyncGenerator
 import json
 import logging
+from typing import Optional
 import httpx
 
 from api.providers.base import ProviderAdapter
 from api.schemas import ChatRequest, ChatResponse, ProviderError
+from api.infra.http_client import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,27 @@ class GroqAdapter(ProviderAdapter):
 
     # Modelos disponibles en Groq
     DEFAULT_MODEL = "llama-3.3-70b-versatile"
+
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        api_key: str,
+        base_url: str = "https://api.groq.com/openai/v1",
+        timeout: float = 30.0,
+        default_model: Optional[str] = None,
+    ):
+        """
+        Inicializa el adapter de Groq.
+
+        Args:
+            http_client: Cliente HTTP asíncrono
+            api_key: API key de Groq
+            base_url: URL base de Groq API
+            timeout: Timeout por defecto para requests
+            default_model: Modelo por defecto cuando no se especifica en la request
+        """
+        super().__init__(http_client, api_key, base_url, timeout)
+        self.default_model = default_model or self.DEFAULT_MODEL
 
     def _build_payload(self, request: ChatRequest) -> dict:
         """
@@ -37,7 +60,7 @@ class GroqAdapter(ProviderAdapter):
         ]
 
         payload = {
-            "model": request.model or self.DEFAULT_MODEL,
+            "model": request.model or self.default_model,
             "messages": messages,
             "max_tokens": request.max_tokens,
             "temperature": request.temperature,

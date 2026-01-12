@@ -11,11 +11,11 @@
 - [X] Tests unitarios
 - [X] CI/CD
 - [X] Definir Rate Limiting por proveedor
+- [X] Selección Explícita de Modelo por Proveedor
 - [X] Permitir especificar de forma opcional un proveedor en la request
 
 ## Próximos pasos
 
-- [ ] Selección Explícita de Modelo por Proveedor
 - [ ] Persistencia de historiales (PostgreSQL)
 - [ ] Soporte para más proveedores (Anthropic, OpenAI)
 - [ ] Dashboard Grafana pre-configurado

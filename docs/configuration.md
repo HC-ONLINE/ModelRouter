@@ -18,6 +18,9 @@ Listado de variables relevantes y su propósito. Para la configuración completa
 | `OPENROUTER_API_KEY`             | Clave API de OpenRouter              | -                            |
 | `OLLAMA_API_KEY`                 | Clave API de Ollama (opcional)       | -                            |
 | `OLLAMA_BASE_URL`                | URL de Ollama                        | `http://localhost:11434`     |
+| `OLLAMA_DEFAULT_MODEL`           | Modelo por defecto de Ollama         | `llama3.2:1b`                |
+| `OPENROUTER_DEFAULT_MODEL`       | Modelo por defecto de OpenRouter     | `openai/gpt-3.5-turbo`       |
+| `GROQ_DEFAULT_MODEL`             | Modelo por defecto de Groq           | `llama-3.3-70b-versatile`    |
 | `API_KEY`                        | Clave para autenticar clientes       | -                            |
 | `REDIS_URL`                      | URL de conexión Redis                | `redis://localhost:6379/0`   |
 | `PROVIDER_TIMEOUT`               | Timeout por proveedor (s)            | `30.0`                       |

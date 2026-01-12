@@ -6,10 +6,12 @@ Implementa el contrato ProviderAdapter para interactuar con OpenRouter.
 from collections.abc import AsyncGenerator
 import json
 import logging
+from typing import Optional
 import httpx
 
 from api.providers.base import ProviderAdapter
 from api.schemas import ChatRequest, ChatResponse, ProviderError
+from api.infra.http_client import HTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,27 @@ class OpenRouterAdapter(ProviderAdapter):
 
     # Modelo por defecto en OpenRouter
     DEFAULT_MODEL = "openai/gpt-3.5-turbo"
+
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        api_key: str,
+        base_url: str = "https://openrouter.ai/api/v1",
+        timeout: float = 30.0,
+        default_model: Optional[str] = None,
+    ):
+        """
+        Inicializa el adapter de OpenRouter.
+
+        Args:
+            http_client: Cliente HTTP asíncrono
+            api_key: API key de OpenRouter
+            base_url: URL base de OpenRouter API
+            timeout: Timeout por defecto para requests
+            default_model: Modelo por defecto cuando no se especifica en la request
+        """
+        super().__init__(http_client, api_key, base_url, timeout)
+        self.default_model = default_model or self.DEFAULT_MODEL
 
     def _build_payload(self, request: ChatRequest) -> dict:
         """
@@ -37,7 +60,7 @@ class OpenRouterAdapter(ProviderAdapter):
         ]
 
         payload = {
-            "model": request.model or self.DEFAULT_MODEL,
+            "model": request.model or self.default_model,
             "messages": messages,
             "max_tokens": request.max_tokens,
             "temperature": request.temperature,

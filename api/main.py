@@ -55,6 +55,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             api_key=settings.groq_api_key,
             base_url=settings.groq_base_url,
             timeout=settings.provider_timeout,
+            default_model=settings.groq_default_model,
         )
         providers.append(groq_adapter)
         logger.info("Proveedor Groq configurado")
@@ -67,6 +68,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             api_key=settings.openrouter_api_key,
             base_url=settings.openrouter_base_url,
             timeout=settings.provider_timeout,
+            default_model=settings.openrouter_default_model,
         )
         providers.append(openrouter_adapter)
         logger.info("Proveedor OpenRouter configurado")

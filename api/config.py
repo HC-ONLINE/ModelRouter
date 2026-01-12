@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     ollama_base_url: str = "http://localhost:11434"
+    ollama_default_model: str = "llama3.2:1b"
 
     # Timeouts (segundos)
     provider_timeout: float = 30.0

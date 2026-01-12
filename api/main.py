@@ -82,6 +82,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             api_key=settings.ollama_api_key or "",
             base_url=settings.ollama_base_url,
             timeout=settings.provider_timeout,
+            default_model=settings.ollama_default_model,
         )
         providers.append(ollama_adapter)
         logger.info(f"Proveedor Ollama configurado en {settings.ollama_base_url}")

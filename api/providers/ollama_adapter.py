@@ -6,6 +6,7 @@ Implementa el contrato ProviderAdapter para interactuar con Ollama.
 from collections.abc import AsyncGenerator
 import json
 import logging
+from typing import Optional
 import httpx
 
 from api.providers.base import ProviderAdapter
@@ -21,7 +22,7 @@ class OllamaAdapter(ProviderAdapter):
     name = "ollama"
 
     # Modelo por defecto en Ollama
-    DEFAULT_MODEL = "llama3.2:1b"  # TODO : Verificar modelo por defecto
+    DEFAULT_MODEL = "llama3.2:1b"
 
     def __init__(
         self,
@@ -29,6 +30,7 @@ class OllamaAdapter(ProviderAdapter):
         api_key: str = "",  # Ollama no requiere API key por defecto
         base_url: str = "http://localhost:11434",
         timeout: float = 30.0,
+        default_model: Optional[str] = None,
     ):
         """
         Inicializa el adapter de Ollama.
@@ -38,8 +40,10 @@ class OllamaAdapter(ProviderAdapter):
             api_key: API key (opcional, Ollama local no lo requiere)
             base_url: URL base de Ollama (por defecto localhost:11434)
             timeout: Timeout por defecto para requests
+            default_model: Modelo por defecto cuando no se especifica en la request
         """
         super().__init__(http_client, api_key, base_url, timeout)
+        self.default_model = default_model or self.DEFAULT_MODEL
 
     def _get_headers(self) -> dict[str, str]:
         """
@@ -95,7 +99,7 @@ class OllamaAdapter(ProviderAdapter):
         prompt = self._messages_to_prompt(request)
 
         payload = {
-            "model": request.model or self.DEFAULT_MODEL,
+            "model": request.model or self.default_model,
             "prompt": prompt,
             "stream": request.stream,
             "options": {

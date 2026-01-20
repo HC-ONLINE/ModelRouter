@@ -6,7 +6,7 @@ import logging
 import json
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 from pythonjsonlogger import jsonlogger
 
 
@@ -108,3 +108,26 @@ class RequestLogger:
 
     def critical(self, message: str, **kwargs: Any) -> None:
         self._log("critical", message, **kwargs)
+
+
+def log_provider_error(
+    logger: logging.Logger,
+    provider: str,
+    error_code: str,
+    request_id: Optional[str] = None,
+    exc: Optional[Exception] = None,
+) -> None:
+    """
+    Loguea un error estructurado de provider con traceback y contexto.
+    """
+    import traceback
+
+    logger.error(
+        "Provider error",
+        extra={
+            "provider": provider,
+            "error_code": error_code,
+            "request_id": request_id,
+            "traceback": traceback.format_exc() if exc else None,
+        },
+    )

@@ -104,7 +104,15 @@ class Orchestrator:
             raise
 
         except Exception as e:
-            logger.error(f"[{request_id}] Error inesperado en orchestrator: {str(e)}")
+            from api.utils import log_provider_error
+
+            log_provider_error(
+                logger,
+                provider="orchestrator",
+                error_code="UNKNOWN_ERROR",
+                request_id=request_id,
+                exc=e,
+            )
             raise ProviderError(
                 provider="orchestrator",
                 code="UNKNOWN_ERROR",

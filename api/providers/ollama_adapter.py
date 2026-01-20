@@ -166,7 +166,15 @@ class OllamaAdapter(ProviderAdapter):
             )
 
         except Exception as e:
-            logger.error(f"[Ollama] Error inesperado en streaming: {str(e)}")
+            from api.utils import log_provider_error
+
+            log_provider_error(
+                logger,
+                provider=self.name,
+                error_code="UNKNOWN_ERROR",
+                request_id=getattr(request, "request_id", None),
+                exc=e,
+            )
             raise ProviderError(
                 provider=self.name,
                 code="UNKNOWN_ERROR",
@@ -235,7 +243,15 @@ class OllamaAdapter(ProviderAdapter):
             )
 
         except Exception as e:
-            logger.error(f"[Ollama] Error inesperado: {str(e)}")
+            from api.utils import log_provider_error
+
+            log_provider_error(
+                logger,
+                provider=self.name,
+                error_code="UNKNOWN_ERROR",
+                request_id=getattr(request, "request_id", None),
+                exc=e,
+            )
             raise ProviderError(
                 provider=self.name,
                 code="UNKNOWN_ERROR",

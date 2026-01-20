@@ -239,8 +239,14 @@ class Router:
                 continue
 
             except Exception as e:
-                logger.error(
-                    f"[{request_id}] Error inesperado en {provider.name}: {str(e)}"
+                from api.utils import log_provider_error
+
+                log_provider_error(
+                    logger,
+                    provider=provider.name,
+                    error_code="UNKNOWN_ERROR",
+                    request_id=request_id,
+                    exc=e,
                 )
                 last_error = ProviderError(
                     provider=provider.name,

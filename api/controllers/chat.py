@@ -97,13 +97,15 @@ async def chat(
         return response
 
     except ProviderError as e:
-        req_logger.error(
-            "Error en generación",
-            error_code=e.code,
-            error_message=e.message,
-            provider=e.provider,
-        )
+        from api.utils import log_provider_error
 
+        log_provider_error(
+            logger,
+            provider=e.provider,
+            error_code=e.code,
+            request_id=request_id,
+            exc=e,
+        )
         # Mapear a status code HTTP apropiado
         if e.code == "RATE_LIMIT":
             status_code = 429
@@ -115,14 +117,20 @@ async def chat(
             status_code = 503
         else:
             status_code = 500
-
         raise HTTPException(
             status_code=status_code,
             detail={"error": e.code, "message": e.message, "request_id": request_id},
         )
-
     except Exception as e:
-        req_logger.error("Error inesperado", error=str(e))
+        from api.utils import log_provider_error
+
+        log_provider_error(
+            logger,
+            provider="controller",
+            error_code="INTERNAL_ERROR",
+            request_id=request_id,
+            exc=e,
+        )
         raise HTTPException(
             status_code=500,
             detail={
@@ -187,13 +195,15 @@ async def stream(
             req_logger.info("Request /stream completada")
 
         except ProviderError as e:
-            req_logger.error(
-                "Error en streaming",
-                error_code=e.code,
-                error_message=e.message,
-                provider=e.provider,
-            )
+            from api.utils import log_provider_error
 
+            log_provider_error(
+                logger,
+                provider=e.provider,
+                error_code=e.code,
+                request_id=request_id,
+                exc=e,
+            )
             # Enviar error como SSE
             error_data = {
                 "error": e.code,
@@ -201,10 +211,16 @@ async def stream(
                 "request_id": request_id,
             }
             yield f"data: {error_data}\n\n"
-
         except Exception as e:
-            req_logger.error("Error inesperado en streaming", error=str(e))
+            from api.utils import log_provider_error
 
+            log_provider_error(
+                logger,
+                provider="controller",
+                error_code="INTERNAL_ERROR",
+                request_id=request_id,
+                exc=e,
+            )
             error_data = {
                 "error": "INTERNAL_ERROR",
                 "message": str(e),

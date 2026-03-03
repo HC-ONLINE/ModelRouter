@@ -17,10 +17,8 @@ python -m venv .venv
 # Unix
 source .venv/bin/activate
 # Instalar dependencias
-
-pip install -r requirements.txt
-# o
-pip install -r requirements-dev.txt
+python -m pip install --upgrade pip
+pip install -e '.[dev]'
 
 # Levantar Redis para desarrollo
 docker run -d -p 6379:6379 redis:7-alpine

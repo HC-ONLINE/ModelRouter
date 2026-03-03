@@ -26,16 +26,19 @@ class Settings(BaseSettings):
     # Claves API
     groq_api_key: Optional[str] = None
     openrouter_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
     ollama_api_key: Optional[str] = None  # Opcional, Ollama local no lo requiere
 
     # URLs base de proveedores
     groq_base_url: str = "https://api.groq.com/openai/v1"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openai_base_url: str = "https://api.openai.com/v1"
     ollama_base_url: str = "http://localhost:11434"
 
     # Modelos por defecto por proveedor
     groq_default_model: str = "llama-3.3-70b-versatile"
     openrouter_default_model: str = "openai/gpt-3.5-turbo"
+    openai_default_model: str = "gpt-4o-mini"
     ollama_default_model: str = "llama3.2:1b"
 
     # Timeouts (segundos)
@@ -57,6 +60,7 @@ class Settings(BaseSettings):
     # El límite global solo se usa si se elimina explícitamente este campo.
     groq_rate_limit: int = 30
     openrouter_rate_limit: int = 20
+    openai_rate_limit: int = 30
     ollama_rate_limit: int = 100
 
     # Autenticación
@@ -80,6 +84,7 @@ class Settings(BaseSettings):
         provider_limits = {
             "groq": self.groq_rate_limit,
             "openrouter": self.openrouter_rate_limit,
+            "openai": self.openai_rate_limit,
             "ollama": self.ollama_rate_limit,
         }
         return provider_limits.get(provider_name) or self.rate_limit_requests_per_minute

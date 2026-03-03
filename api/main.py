@@ -19,6 +19,7 @@ from api.infra.redis_client import create_redis_client
 from api.providers.base import ProviderAdapter
 from api.providers.groq_adapter import GroqAdapter
 from api.providers.openrouter_adapter import OpenRouterAdapter
+from api.providers.openai_adapter import OpenAIAdapter
 from api.providers.ollama_adapter import OllamaAdapter
 from api.router import Router
 from api.orchestrator import Orchestrator
@@ -76,6 +77,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.warning(
             "OPENROUTER_API_KEY no configurada, OpenRouter no estará disponible"
         )
+
+    if settings.openai_api_key:
+        openai_adapter = OpenAIAdapter(
+            http_client=http_client,
+            api_key=settings.openai_api_key,
+            base_url=settings.openai_base_url,
+            timeout=settings.provider_timeout,
+            default_model=settings.openai_default_model,
+        )
+        providers.append(openai_adapter)
+        logger.info("Proveedor OpenAI configurado")
+    else:
+        logger.warning("OPENAI_API_KEY no configurada, OpenAI no estará disponible")
 
     # Ollama: siempre intentar configurar (no requiere API key obligatoria)
     try:

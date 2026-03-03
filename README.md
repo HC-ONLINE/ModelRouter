@@ -1,6 +1,6 @@
 # ModelRouter
 
-**API HTTP asíncrona con streaming** que orquesta múltiples proveedores de LLM (Groq, OpenRouter y Ollama) con fallback automático y observabilidad.
+**API HTTP asíncrona con streaming** que orquesta múltiples proveedores de LLM con fallback automático y observabilidad.
 
 [![CI/CD](https://github.com/HC-ONLINE/ModelRouter/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/HC-ONLINE/ModelRouter/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -11,10 +11,14 @@
 
 ## Características Principales
 
-* **Orquestación Multi-proveedor:** Fallback automático entre Groq, OpenRouter y Ollama.
-* **Streaming Nativo:** Soporte para Server-Sent Events (SSE).
-* **Resiliencia:** Rate limiting, blacklist temporal y backoff exponencial.
-* **Production Ready:** Métricas Prometheus, logs estructurados y Dockerizado.
+- **Orquestación Multi-proveedor:** Fallback automático entre:
+  - Groq
+  - OpenRouter
+  - OpenAI
+  - Ollama
+- **Streaming Nativo:** Soporte para Server-Sent Events (SSE).
+- **Resiliencia:** Rate limiting, blacklist temporal y backoff exponencial.
+- **Production Ready:** Métricas Prometheus, logs estructurados y Dockerizado.
 
 ---
 
@@ -67,12 +71,12 @@ curl -N -X POST http://localhost:8000/stream \
 
 ### Documentación Detallada
 
-* [Arquitectura](docs/architecture.md) - Cómo funciona internamente.
-* [Configuración](docs/configuration.md) - Variables de entorno y rate limits.
-* [Ejemplos de Uso](docs/examples.md) - Ejemplos con `curl` y `fetch`.
-* [Desarrollo](docs/development.md) - Guía para contribuir, tests y linting.
-* [Observabilidad](docs/observability.md) - Métricas y Logs.
-* [Seguridad](docs/security.md) - Notas de seguridad y legal.
+- [Arquitectura](docs/architecture.md) - Cómo funciona internamente.
+- [Configuración](docs/configuration.md) - Variables de entorno y rate limits.
+- [Ejemplos de Uso](docs/examples.md) - Ejemplos con `curl` y `fetch`.
+- [Desarrollo](docs/development.md) - Guía para contribuir, tests y linting.
+- [Observabilidad](docs/observability.md) - Métricas y Logs.
+- [Seguridad](docs/security.md) - Notas de seguridad y legal.
 
 Estos documentos están en la carpeta `docs/`.
 
@@ -102,10 +106,10 @@ Este proyecto está bajo la Licencia Apache-2.0 (Apache License 2.0). Ver [LICEN
 
 Este proyecto es para **uso personal**. Asegúrate de:
 
-* Leer y cumplir los **Terms of Service** de los proveedores usados
-* No usar rotación de proveedores para **evadir límites** de uso
-* Respetar **rate limits** y políticas de cada proveedor
-* No almacenar/procesar datos sensibles sin las medidas de seguridad apropiadas
+- Leer y cumplir los **Terms of Service** de los proveedores usados
+- No usar rotación de proveedores para **evadir límites** de uso
+- Respetar **rate limits** y políticas de cada proveedor
+- No almacenar/procesar datos sensibles sin las medidas de seguridad apropiadas
 
 **El autor no se hace responsable del uso indebido de esta herramienta.**
 

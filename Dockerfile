@@ -11,12 +11,13 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Actualizar paquetes del sistema para parches de seguridad
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar pyproject y usarlo para instalar dependencias
 COPY pyproject.toml .
+COPY api/ ./api/
 RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir .
 
@@ -27,9 +28,6 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
-
-# Actualizar sistema base
-RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
 # Copiar dependencias instaladas
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages

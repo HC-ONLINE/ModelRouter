@@ -1,2 +1,22 @@
 @import "tailwindcss";
+/* @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"); */
 @plugin "@tailwindcss/typography";
+
+@theme {
+  /* Primary Background (Synthetic Abyss) */
+  --color-background: #0b1326; /* Containers & Layers (Tonal Layering) */
+  --color-surface-low: #131b2e;
+  --color-surface-mid: #171f33;
+  --color-surface-high: #1c273d; /* Brand & Accent Colors (Electric Cyan) */
+  --color-primary: #00f5ff;
+  /* --color-primary-dim: rgba(0, 245, 255, 0.1); */
+  --color-accent: #e9feff; /* Estados y Semántica */
+  --color-success: #00f291;
+  --color-warning: #ffd12d;
+  --color-error: #ff4d4d;
+  --color-info: #70a1ff; /* Text */
+  --color-text-bright: #ffffff;
+  --color-text-muted: #dae2fd;
+  /* --color-text-dim: rgba(218, 226, 253, 0.6); */ /* typography (Space Grotesk) */
+  --font-display: "Space Grotesk", sans-serif;
+}

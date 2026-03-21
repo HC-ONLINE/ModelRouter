@@ -36,7 +36,7 @@ import Button from "../components/ui/Button.astro";
                 type="range"
                 id="temperature"
                 min="0"
-                max="2"
+                max="1"
                 step="0.1"
                 value="0.7"
                 class="w-full h-2 bg-[#131b2e] rounded-lg appearance-none cursor-pointer accent-[#00f5ff]"
@@ -58,18 +58,6 @@ import Button from "../components/ui/Button.astro";
               />
             </div>
 
-            <!-- Stream Toggle -->
-            <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="stream"
-                class="w-4 h-4 cursor-pointer accent-[#00f5ff]"
-              />
-              <label for="stream" class="text-sm text-[#dae2fd]/80 cursor-pointer"
-                >Usar Streaming</label
-              >
-            </div>
-
             <!-- Message Input -->
             <div>
               <label class="block text-sm text-[#dae2fd]/80 mb-2"
@@ -82,7 +70,20 @@ import Button from "../components/ui/Button.astro";
               ></textarea>
             </div>
           </div>
+
+            <!-- Stream Toggle -->
+            <div class="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="stream"
+                class="w-4 h-4 cursor-pointer accent-[#00f5ff]"
+              />
+              <label for="stream" class="text-sm text-[#dae2fd]/80 cursor-pointer"
+                >Usar Streaming</label
+              >
+            </div>
         </div>
+
 
         <Button
           id="sendBtn"

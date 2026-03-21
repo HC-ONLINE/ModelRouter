@@ -1,0 +1,294 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import Button from "../components/ui/Button.astro";
+---
+
+<MainLayout title="Métricas - ModelRouter">
+  <div class="max-w-6xl mx-auto">
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold text-[#00f5ff]">Métricas de Prometheus</h2>
+          <div class="flex gap-2">
+            <Button
+              id="autoRefreshBtn"
+              variant="secondary"
+              class="text-xs"
+            >
+              Auto-refresh ON
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Request Latency -->
+        <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+          <h3 class="text-lg font-bold text-[#00f5ff] mb-4">Latencia de Peticiones</h3>
+          <div id="latencyChart" class="bg-[#131b2e] rounded p-4 h-64 flex items-center justify-center">
+            <p class="text-[#dae2fd]/50">Cargando gráfica...</p>
+          </div>
+          <div class="mt-3 text-xs text-[#dae2fd]/60">
+            <p>Métrica: <code>modelrouter_request_latency_seconds</code></p>
+          </div>
+        </div>
+
+        <!-- Request Rate -->
+        <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+          <h3 class="text-lg font-bold text-[#00f5ff] mb-4">Tasa de Peticiones</h3>
+          <div id="rateChart" class="bg-[#131b2e] rounded p-4 h-64 flex items-center justify-center">
+            <p class="text-[#dae2fd]/50">Cargando gráfica...</p>
+          </div>
+          <div class="mt-3 text-xs text-[#dae2fd]/60">
+            <p>Métrica: <code>modelrouter_requests_total</code></p>
+          </div>
+        </div>
+
+        <!-- Token Usage -->
+        <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+          <h3 class="text-lg font-bold text-[#00f5ff] mb-4">Tokens Consumidos</h3>
+          <div id="tokensChart" class="bg-[#131b2e] rounded p-4 h-64 flex items-center justify-center">
+            <p class="text-[#dae2fd]/50">Cargando gráfica...</p>
+          </div>
+          <div class="mt-3 text-xs text-[#dae2fd]/60">
+            <p>Métrica: <code>modelrouter_tokens_total</code></p>
+          </div>
+        </div>
+
+        <!-- Provider Errors -->
+        <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+          <h3 class="text-lg font-bold text-[#00f5ff] mb-4">Errores por Proveedor</h3>
+          <div id="errorsChart" class="bg-[#131b2e] rounded p-4 h-64 flex items-center justify-center">
+            <p class="text-[#dae2fd]/50">Cargando gráfica...</p>
+          </div>
+          <div class="mt-3 text-xs text-[#dae2fd]/60">
+            <p>Métrica: <code>modelrouter_provider_errors_total</code></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw Metrics Data -->
+      <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+        <h3 class="text-lg font-bold text-[#00f5ff] mb-4">Datos Raw de Prometheus</h3>
+        <textarea
+          id="metricsData"
+          readonly
+          class="w-full h-64 bg-[#131b2e] border border-[#00f5ff]/30 text-[#00f291] rounded px-3 py-2 font-mono text-sm focus:outline-none focus:border-[#00f5ff]"
+          placeholder="Los datos de Prometheus aparecerán aquí..."
+        ></textarea>
+        <p class="text-xs text-[#dae2fd]/60 mt-2">
+          Endpoint: <code class="bg-[#131b2e] px-2 py-1 rounded">http://localhost:8000/metrics</code>
+        </p>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  const autoRefreshBtn = document.getElementById("autoRefreshBtn");
+  const metricsData = document.getElementById("metricsData");
+  const latencyChart = document.getElementById("latencyChart");
+  const rateChart = document.getElementById("rateChart");
+  const tokensChart = document.getElementById("tokensChart");
+  const errorsChart = document.getElementById("errorsChart");
+
+  let autoRefresh = true;
+  let refreshInterval;
+
+  async function fetchMetrics() {
+    try {
+      const response = await fetch("http://localhost:8000/metrics");
+      const text = await response.text();
+
+      metricsData.value = text;
+
+      // Parsear algunas métricas interesantes
+      parseAndDisplay(text);
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+      metricsData.value = `Error: No se puede conectar a http://localhost:8000/metrics\n\n${error.message}`;
+
+      // Mostrar datos mock para demo
+      showMockMetrics();
+    }
+  }
+
+  function parseAndDisplay(metricsText) {
+    try {
+      const lines = metricsText.split("\n");
+      const metrics = {
+        requests: {},
+        latency: {},
+        tokens: {},
+        errors: {},
+        active_streams: 0,
+        providers_blacklisted: {}
+      };
+
+      lines.forEach((line) => {
+        if (!line.startsWith("#") && line.trim()) {
+          const match = line.match(/^([^\{]+)(?:\{([^\}]*)\})?\s+(.+)$/);
+          if (match) {
+            const [, name, labels, value] = match;
+            const numValue = parseFloat(value);
+
+            if (name.includes("requests_total")) {
+              if (!metrics.requests[name]) metrics.requests[name] = [];
+              metrics.requests[name].push({ labels, value: numValue });
+            } else if (name.includes("request_latency")) {
+              if (!metrics.latency[name]) metrics.latency[name] = [];
+              metrics.latency[name].push({ labels, value: numValue });
+            } else if (name.includes("tokens_generated")) {
+              if (!metrics.tokens[name]) metrics.tokens[name] = [];
+              metrics.tokens[name].push({ labels, value: numValue });
+            } else if (name.includes("provider_failures")) {
+              if (!metrics.errors[name]) metrics.errors[name] = [];
+              metrics.errors[name].push({ labels, value: numValue });
+            } else if (name.includes("active_streams")) {
+              metrics.active_streams = numValue;
+            } else if (name.includes("providers_blacklisted")) {
+              metrics.providers_blacklisted[name] = numValue;
+            }
+          }
+        }
+      });
+
+      updateCharts(metrics);
+    } catch (error) {
+      console.error("Error parsing metrics:", error);
+    }
+  }
+
+  function updateCharts(metrics) {
+    // Calcular totales
+    let totalRequests = 0;
+    let totalTokens = 0;
+    let totalErrors = 0;
+    let latencyValues = [];
+
+    Object.values(metrics.requests).forEach(arr => {
+      arr.forEach(item => {
+        if (!item.labels.includes("bucket")) {
+          totalRequests += item.value;
+        }
+      });
+    });
+
+    Object.values(metrics.tokens).forEach(arr => {
+      arr.forEach(item => {
+        totalTokens += item.value;
+      });
+    });
+
+    Object.values(metrics.errors).forEach(arr => {
+      arr.forEach(item => {
+        totalErrors += item.value;
+      });
+    });
+
+    Object.values(metrics.latency).forEach(arr => {
+      arr.forEach(item => {
+        if (!item.labels.includes("bucket") && !item.labels.includes("sum") && !item.labels.includes("count")) {
+          if (item.value > 0 && item.value < 100) { // Rango razonable: 0-100 segundos
+            latencyValues.push(item.value);
+          }
+        }
+      });
+    });
+
+    const avgLatency = latencyValues.length > 0
+      ? Math.min(parseFloat((latencyValues.reduce((a, b) => a + b, 0) / latencyValues.length * 1000).toFixed(2)), 99999)
+      : 0;
+
+    rateChart.innerHTML = `<div class="text-center">
+      <p class="text-[#00f5ff] font-bold text-3xl">${totalRequests}</p>
+      <p class="text-[#dae2fd]/60 mt-2">Total de Peticiones</p>
+      <p class="text-xs text-[#dae2fd]/40 mt-1">Desde que inició el servidor</p>
+    </div>`;
+
+    latencyChart.innerHTML = `<div class="text-center">
+      <p class="text-[#00f5ff] font-bold text-3xl">${avgLatency}ms</p>
+      <p class="text-[#dae2fd]/60 mt-2">Latencia Promedio</p>
+      <p class="text-xs text-[#dae2fd]/40 mt-1">${latencyValues.length} muestras</p>
+    </div>`;
+
+    tokensChart.innerHTML = `<div class="text-center">
+      <p class="text-[#00f5ff] font-bold text-3xl">${totalTokens}</p>
+      <p class="text-[#dae2fd]/60 mt-2">Tokens Consumidos</p>
+      <p class="text-xs text-[#dae2fd]/40 mt-1">Total histórico</p>
+    </div>`;
+
+    errorsChart.innerHTML = `<div class="text-center">
+      <p class="text-${totalErrors > 0 ? '[#ff4d4d]' : '[#00f291]'} font-bold text-3xl">${totalErrors}</p>
+      <p class="text-[#dae2fd]/60 mt-2">Errores</p>
+      <p class="text-xs text-[#dae2fd]/40 mt-1">Fallos del proveedor</p>
+    </div>`;
+  }
+
+  function showMockMetrics() {
+    const mockMetrics = `# HELP modelrouter_requests_total Total de requests recibidas
+# TYPE modelrouter_requests_total counter
+modelrouter_requests_total{route="/chat",method="POST",status="200"} 45
+modelrouter_requests_total{route="/stream",method="POST",status="200"} 38
+modelrouter_requests_total{route="/health",method="GET",status="200"} 120
+modelrouter_requests_total{route="/chat",method="POST",status="500"} 2
+
+# HELP modelrouter_request_latency_seconds Latencia de requests en segundos
+# TYPE modelrouter_request_latency_seconds histogram
+modelrouter_request_latency_seconds_bucket{le="0.1",route="/chat"} 12
+modelrouter_request_latency_seconds_bucket{le="0.5",route="/chat"} 38
+modelrouter_request_latency_seconds_bucket{le="1.0",route="/chat"} 43
+modelrouter_request_latency_seconds_bucket{le="2.0",route="/chat"} 45
+modelrouter_request_latency_seconds_sum{route="/chat"} 42.567
+modelrouter_request_latency_seconds_count{route="/chat"} 45
+
+# HELP modelrouter_tokens_generated Tokens generados por request
+# TYPE modelrouter_tokens_generated histogram
+modelrouter_tokens_generated_bucket{le="10",provider="ollama"} 0
+modelrouter_tokens_generated_bucket{le="50",provider="ollama"} 8
+modelrouter_tokens_generated_bucket{le="100",provider="ollama"} 25
+modelrouter_tokens_generated_bucket{le="250",provider="ollama"} 40
+modelrouter_tokens_generated_sum{provider="ollama"} 4520
+modelrouter_tokens_generated_count{provider="ollama"} 40
+
+# HELP modelrouter_provider_failures_total Total de fallos por proveedor
+# TYPE modelrouter_provider_failures_total counter
+modelrouter_provider_failures_total{provider="ollama",reason="timeout"} 0
+modelrouter_provider_failures_total{provider="ollama",reason="connection_error"} 2
+modelrouter_provider_failures_total{provider="openai",reason="api_error"} 0
+
+# HELP modelrouter_provider_success_total Total de generaciones exitosas por proveedor
+# TYPE modelrouter_provider_success_total counter
+modelrouter_provider_success_total{provider="ollama"} 40
+
+# HELP modelrouter_active_streams Número de streams activos actualmente
+# TYPE modelrouter_active_streams gauge
+modelrouter_active_streams 0
+
+# HELP modelrouter_providers_blacklisted Número de proveedores en blacklist
+# TYPE modelrouter_providers_blacklisted gauge
+modelrouter_providers_blacklisted{provider="ollama"} 0`;
+
+    metricsData.value = mockMetrics;
+    parseAndDisplay(mockMetrics);
+  }
+
+  // Auto-refresh toggle
+  autoRefreshBtn.addEventListener("click", () => {
+    autoRefresh = !autoRefresh;
+    autoRefreshBtn.textContent = autoRefresh ? "Auto-refresh ON" : "⏸Auto-refresh OFF";
+
+    if (autoRefresh) {
+      refreshInterval = setInterval(fetchMetrics, 5000);
+      fetchMetrics();
+    } else {
+      clearInterval(refreshInterval);
+    }
+  });
+
+  // Initial fetch
+  fetchMetrics();
+  refreshInterval = setInterval(fetchMetrics, 5000);
+</script>

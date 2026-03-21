@@ -1,17 +1,329 @@
 ---
-
+import MainLayout from "../layouts/MainLayout.astro";
+import Button from "../components/ui/Button.astro";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout title="Playground - ModelRouter">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Request Panel -->
+      <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6">
+        <div class="mb-6">
+          <h3 class="text-lg font-bold text-[#00f5ff] mb-4">REQUEST</h3>
+          <div class="space-y-4">
+            <!-- Model Selection -->
+            <div>
+              <label class="block text-sm text-[#dae2fd]/80 mb-2"
+                >Modelo</label
+              >
+              <select
+                id="model"
+                class="w-full bg-[#131b2e] border border-[#00f5ff]/30 text-[#dae2fd] rounded px-3 py-2 focus:outline-none focus:border-[#00f5ff]"
+              >
+                <option value="">Auto (default)</option>
+                <option value="gpt-4">GPT-4</option>
+                <option value="claude-3">Claude 3</option>
+                <option value="groq-mixtral">Groq Mixtral</option>
+              </select>
+            </div>
+
+            <!-- Temperature -->
+            <div>
+              <label class="block text-sm text-[#dae2fd]/80 mb-2"
+                >Temperatura: <span id="tempValue">0.7</span></label
+              >
+              <input
+                type="range"
+                id="temperature"
+                min="0"
+                max="2"
+                step="0.1"
+                value="0.7"
+                class="w-full h-2 bg-[#131b2e] rounded-lg appearance-none cursor-pointer accent-[#00f5ff]"
+              />
+            </div>
+
+            <!-- Max Tokens -->
+            <div>
+              <label class="block text-sm text-[#dae2fd]/80 mb-2"
+                >Max Tokens</label
+              >
+              <input
+                type="number"
+                id="maxTokens"
+                min="1"
+                max="4096"
+                value="512"
+                class="w-full bg-[#131b2e] border border-[#00f5ff]/30 text-[#dae2fd] rounded px-3 py-2 focus:outline-none focus:border-[#00f5ff]"
+              />
+            </div>
+
+            <!-- Stream Toggle -->
+            <div class="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="stream"
+                class="w-4 h-4 cursor-pointer accent-[#00f5ff]"
+              />
+              <label for="stream" class="text-sm text-[#dae2fd]/80 cursor-pointer"
+                >Usar Streaming</label
+              >
+            </div>
+
+            <!-- Message Input -->
+            <div>
+              <label class="block text-sm text-[#dae2fd]/80 mb-2"
+                >Mensaje</label
+              >
+              <textarea
+                id="message"
+                placeholder="Escribe tu pregunta aquí..."
+                class="w-full h-32 bg-[#131b2e] border border-[#00f5ff]/30 text-[#dae2fd] rounded px-3 py-2 focus:outline-none focus:border-[#00f5ff] resize-none"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          id="sendBtn"
+          variant="primary"
+          class="w-full"
+        >
+        Enviar Petición
+        </Button>
+      </div>
+
+      <!-- Response Panel -->
+      <div class="bg-[#171f33] rounded-lg border border-[#00f5ff]/20 p-6 flex flex-col">
+        <h3 class="text-lg font-bold text-[#00f5ff] mb-4">RESPUESTA</h3>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden flex items-center justify-center flex-1">
+          <div class="text-center">
+            <div class="inline-block">
+              <div
+                class="w-8 h-8 border-4 border-[#00f5ff]/20 border-t-[#00f5ff] rounded-full animate-spin"
+              ></div>
+            </div>
+            <p class="mt-4 text-[#dae2fd]/60">Procesando...</p>
+          </div>
+        </div>
+
+        <!-- Response Content -->
+        <div
+          id="responseContent"
+          class="flex-1 overflow-auto bg-[#131b2e] rounded p-4 min-h-64 text-sm text-[#dae2fd] font-mono"
+        >
+          <p class="text-[#dae2fd]/50">La respuesta aparecerá aquí...</p>
+        </div>
+
+        <!-- Stats -->
+        <div id="stats" class="hidden grid grid-cols-3 gap-3 mt-4 text-xs">
+          <div class="bg-[#131b2e] rounded p-3">
+            <p class="text-[#dae2fd]/60">Tokens</p>
+            <p class="text-[#00f5ff] font-bold" id="statTokens">-</p>
+          </div>
+          <div class="bg-[#131b2e] rounded p-3">
+            <p class="text-[#dae2fd]/60">Latencia</p>
+            <p class="text-[#00f5ff] font-bold" id="statLatency">-</p>
+          </div>
+          <div class="bg-[#131b2e] rounded p-3">
+            <p class="text-[#dae2fd]/60">Proveedor</p>
+            <p class="text-[#00f5ff] font-bold" id="statProvider">-</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  // Esperar a que el DOM esté listo
+  function initPlayground() {
+    const sendBtn = document.getElementById("sendBtn");
+    const messageInput = document.getElementById("message");
+    const modelSelect = document.getElementById("model");
+    const temperatureInput = document.getElementById("temperature");
+    const tempValue = document.getElementById("tempValue");
+    const maxTokensInput = document.getElementById("maxTokens");
+    const streamCheckbox = document.getElementById("stream");
+    const responseContent = document.getElementById("responseContent");
+    const loading = document.getElementById("loading");
+    const stats = document.getElementById("stats");
+    const statTokens = document.getElementById("statTokens");
+    const statLatency = document.getElementById("statLatency");
+    const statProvider = document.getElementById("statProvider");
+
+    if (!sendBtn || !messageInput || !modelSelect) {
+      console.error("Elementos del DOM no encontrados");
+      return;
+    }
+
+    // Cargar configuración desde env
+    const apiKey = import.meta.env.PUBLIC_API_KEY;
+    const apiUrl = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+
+    if (!apiKey) {
+      responseContent.innerHTML =
+        '<div class="text-[#ff4d4d]">Error: API_KEY no configurada. Verifica .env.local</div>';
+      sendBtn.disabled = true;
+      return;
+    }
+
+    // Update temperature display
+    temperatureInput.addEventListener("input", (e) => {
+      tempValue.textContent = e.target.value;
+    });
+
+    // Función para obtener headers con autenticación
+    function getHeaders() {
+      return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      };
+    }
+
+    // Send request
+    sendBtn.addEventListener("click", async () => {
+      const message = messageInput.value.trim();
+      if (!message) {
+        alert("Por favor escribe un mensaje");
+        return;
+      }
+
+      sendBtn.disabled = true;
+      loading.classList.remove("hidden");
+      responseContent.innerHTML = "";
+      stats.classList.add("hidden");
+
+      try {
+        const payload = {
+          messages: [
+            {
+              role: "user",
+              content: message,
+            },
+          ],
+          max_tokens: parseInt(maxTokensInput.value),
+          temperature: parseFloat(temperatureInput.value),
+          stream: streamCheckbox.checked,
+          model: modelSelect.value || undefined,
+        };
+
+        if (streamCheckbox.checked) {
+          // Streaming (SSE)
+          const response = await fetch(`${apiUrl}/stream`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+          }
+
+          responseContent.innerHTML = "";
+          loading.classList.add("hidden");
+
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          if (reader) {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n\n");
+
+              for (let i = 0; i < lines.length - 1; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith("data: ")) {
+                  const data = line.replace("data: ", "").trim();
+                  if (data === "[DONE]") {
+                    break;
+                  }
+                  responseContent.innerHTML += data;
+                  responseContent.scrollTop = responseContent.scrollHeight;
+                }
+              }
+
+              buffer = lines[lines.length - 1];
+            }
+          }
+        } else {
+          // Non-streaming
+          const response = await fetch(`${apiUrl}/chat`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.detail || `Error: ${response.statusText}`
+            );
+          }
+
+          const data = await response.json();
+          loading.classList.add("hidden");
+          responseContent.innerHTML = `<div class="whitespace-pre-wrap">${data.text}</div>`;
+
+          // Show stats
+          stats.classList.remove("hidden");
+          statProvider.textContent = data.provider || "-";
+          if (data.provider_meta?.total_tokens) {
+            statTokens.textContent = data.provider_meta.total_tokens;
+          }
+          if (data.provider_meta?.latency_ms) {
+            statLatency.textContent = `${data.provider_meta.latency_ms}ms`;
+          }
+        }
+      } catch (error) {
+        loading.classList.add("hidden");
+        const errorMsg = error instanceof Error ? error.message : "Error desconocido";
+        responseContent.innerHTML = `<div class="text-[#ff4d4d]">Error: ${errorMsg}</div>`;
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+
+    // Allow Ctrl+Enter to send
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.ctrlKey) {
+        sendBtn.click();
+      }
+    });
+  }
+
+  // Esperar a que el DOM esté completamente cargado
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPlayground);
+  } else {
+    initPlayground();
+  }
+</script>
+
+<style>
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #131b2e;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #00f5ff;
+    border-radius: 4px;
+    opacity: 0.5;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    opacity: 1;
+  }
+</style>

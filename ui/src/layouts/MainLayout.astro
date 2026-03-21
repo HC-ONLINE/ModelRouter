@@ -1,0 +1,93 @@
+---
+import "../styles/global.css";
+import ApiHealth from "../components/ApiHealth.astro";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "ModelRouter" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body class="bg-[#0b1326] text-[#dae2fd] font-sans">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-[#131b2e] border-r border-[#00f5ff]/20 p-6 flex flex-col"
+      >
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-[#00f5ff]">ModelRouter</h1>
+          <p class="text-sm text-[#dae2fd]/60">Orquestador de Modelos de LLM</p>
+        </div>
+
+        <nav class="flex-1 space-y-2">
+          <a
+            href="/"
+            class="block px-4 py-2 rounded text-[#00f5ff] bg-[#1c273d] hover:bg-[#00f5ff]/10 transition-colors"
+          >
+            Playground
+          </a>
+          <a
+            href="#"
+            class="block px-4 py-2 rounded text-[#dae2fd] hover:bg-[#1c273d] hover:text-[#00f5ff] transition-colors"
+          >
+            Proveedores
+          </a>
+          <a
+            href="#"
+            class="block px-4 py-2 rounded text-[#dae2fd] hover:bg-[#1c273d] hover:text-[#00f5ff] transition-colors"
+          >
+            Logs
+          </a>
+        </nav>
+
+        <div class="pt-4 border-t border-[#00f5ff]/20 text-xs text-[#dae2fd]/60">
+          <p>v0.1.0</p>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="bg-[#171f33] border-b border-[#00f5ff]/20 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-[#00f5ff]">ModelRouter</h2>
+            <div class="flex gap-4 items-center">
+              <div id="healthBadge" class="text-sm text-[#dae2fd]/60">
+                Verificando...
+              </div>
+              <button
+                class="px-3 py-1 text-sm rounded bg-[#1c273d] text-[#00f5ff] hover:bg-[#00f5ff]/10 transition-colors"
+              >
+                Localhost
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <ApiHealth />
+
+
+        <!-- Content -->
+        <main
+          class="flex-1 overflow-auto bg-[#0b1326] p-6"
+        >
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <style>
+      body {
+        font-family: "Space Grotesk", sans-serif;
+      }
+    </style>
+  </body>
+</html>

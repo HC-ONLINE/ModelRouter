@@ -119,18 +119,22 @@ import Button from "../components/ui/Button.astro";
         </div>
 
         <!-- Stats -->
-        <div id="stats" class="hidden grid grid-cols-3 gap-3 mt-4 text-xs">
+        <div id="stats" class="hidden grid grid-cols-4 gap-3 mt-4 text-xs">
+          <div class="bg-[#131b2e] rounded p-3">
+            <p class="text-[#dae2fd]/60">Proveedor</p>
+            <p class="text-[#00f5ff] font-bold text-sm" id="statProvider">-</p>
+          </div>
+          <div class="bg-[#131b2e] rounded p-3">
+            <p class="text-[#dae2fd]/60">Modelo</p>
+            <p class="text-[#00f5ff] font-bold text-sm overflow-hidden text-ellipsis" id="statModel">-</p>
+          </div>
           <div class="bg-[#131b2e] rounded p-3">
             <p class="text-[#dae2fd]/60">Tokens</p>
-            <p class="text-[#00f5ff] font-bold" id="statTokens">-</p>
+            <p class="text-[#00f5ff] font-bold text-sm" id="statTokens">-</p>
           </div>
           <div class="bg-[#131b2e] rounded p-3">
             <p class="text-[#dae2fd]/60">Latencia</p>
-            <p class="text-[#00f5ff] font-bold" id="statLatency">-</p>
-          </div>
-          <div class="bg-[#131b2e] rounded p-3">
-            <p class="text-[#dae2fd]/60">Proveedor</p>
-            <p class="text-[#00f5ff] font-bold" id="statProvider">-</p>
+            <p class="text-[#00f5ff] font-bold text-sm" id="statLatency">-</p>
           </div>
         </div>
       </div>
@@ -154,6 +158,7 @@ import Button from "../components/ui/Button.astro";
     const statTokens = document.getElementById("statTokens");
     const statLatency = document.getElementById("statLatency");
     const statProvider = document.getElementById("statProvider");
+    const statModel = document.getElementById("statModel");
 
     if (!sendBtn || !messageInput || !modelSelect) {
       console.error("Elementos del DOM no encontrados");
@@ -259,11 +264,16 @@ import Button from "../components/ui/Button.astro";
           }
         } else {
           // Non-streaming
+          const startTime = performance.now();
+
           const response = await fetch(`${apiUrl}/chat`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(payload),
           });
+
+          const endTime = performance.now();
+          const latency = Math.round(endTime - startTime);
 
           if (!response.ok) {
             const errorData = await response.json();
@@ -274,22 +284,49 @@ import Button from "../components/ui/Button.astro";
 
           const data = await response.json();
           loading.classList.add("hidden");
+
+          console.log("=== Response Data ===");
+          console.log("Full response:", data);
+          console.log("Provider:", data.provider);
+          console.log("Model:", data.model);
+          console.log("Provider Meta:", data.provider_meta);
+          console.log("Tokens Total:", data.provider_meta?.tokens_total);
+
           responseContent.innerHTML = `<div class="break-words overflow-x-hidden whitespace-pre-wrap">${data.text}</div>`;
 
           // Show stats
           stats.classList.remove("hidden");
           statProvider.textContent = data.provider || "-";
-          if (data.provider_meta?.total_tokens) {
-            statTokens.textContent = data.provider_meta.total_tokens;
+
+          // Mostrar modelo
+          if (data.model) {
+            const modelName = data.model.split("/").pop() || data.model;
+            statModel.textContent = modelName;
+            console.log("Model shown:", modelName);
+          } else if (data.provider_meta?.model) {
+            statModel.textContent = data.provider_meta.model.split("/").pop() || data.provider_meta.model;
+            console.log("Model from meta:", statModel.textContent);
+          } else {
+            statModel.textContent = "-";
           }
-          if (data.provider_meta?.latency_ms) {
-            statLatency.textContent = `${data.provider_meta.latency_ms}ms`;
+
+          // Mostrar tokens
+          if (data.provider_meta?.tokens_total !== undefined) {
+            statTokens.textContent = data.provider_meta.tokens_total;
+            console.log("Tokens shown:", data.provider_meta.tokens_total);
+          } else {
+            statTokens.textContent = "-";
+            console.warn("Tokens not found in response");
           }
+
+          // Mostrar latencia calculada
+          statLatency.textContent = `${latency}ms`;
+          console.log("Latency:", `${latency}ms`);
         }
       } catch (error) {
         loading.classList.add("hidden");
         const errorMsg = error instanceof Error ? error.message : "Error desconocido";
-        responseContent.innerHTML = `<div class="text-[#ff4d4d] break-words overflow-x-hidden">❌ Error: ${errorMsg}</div>`;
+        responseContent.innerHTML = `<div class="text-[#ff4d4d] break-words overflow-x-hidden">Error: ${errorMsg}</div>`;
       } finally {
         sendBtn.disabled = false;
       }

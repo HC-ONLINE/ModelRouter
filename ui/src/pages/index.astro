@@ -16,16 +16,20 @@ import Button from "../components/ui/Button.astro";
               <label class="block text-sm text-[#dae2fd]/80 mb-2"
                 >Proveedor</label
               >
+
               <select
                 id="provider"
                 class="w-full bg-[#131b2e] border border-[#00f5ff]/30 text-[#dae2fd] rounded px-3 py-2 focus:outline-none focus:border-[#00f5ff]"
               >
                 <option value="">Auto (default)</option>
-                <option value="groq">Groq</option>
-                <option value="openai">OpenAI</option>
-                <option value="openrouter">OpenRouter</option>
-                <option value="ollama">Ollama</option>
+                <option value="groq" disabled>Groq (no disponible)</option>
+                <option value="openai" disabled>OpenAI (no disponible)</option>
+                <option value="openrouter" disabled>OpenRouter (no disponible)</option>
+                <option value="ollama">Ollama ✓</option>
               </select>
+                            <p class="text-xs text-[#ffd12d] mb-2 mt-2 bg-[#1c273d] px-2 rounded">
+                Demo: Solo <span class="font-bold">Ollama</span> está disponible
+              </p>
             </div>
 
             <!-- Temperature -->

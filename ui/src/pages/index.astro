@@ -297,7 +297,11 @@ import Button from "../components/ui/Button.astro";
 
           // Show stats
           stats.classList.remove("hidden");
-          statProvider.textContent = data.provider || "-";
+
+          // Mostrar proveedor
+          const providerName = data.provider || "-";
+          statProvider.textContent = providerName;
+          console.log("Provider shown:", providerName);
 
           // Mostrar modelo
           if (data.model) {
@@ -312,12 +316,12 @@ import Button from "../components/ui/Button.astro";
           }
 
           // Mostrar tokens
-          if (data.provider_meta?.tokens_total !== undefined) {
+          if (data.provider_meta?.tokens_total !== undefined && data.provider_meta?.tokens_total !== null) {
             statTokens.textContent = data.provider_meta.tokens_total;
             console.log("Tokens shown:", data.provider_meta.tokens_total);
           } else {
             statTokens.textContent = "-";
-            console.warn("Tokens not found in response");
+            console.warn("Tokens not found in response:", data.provider_meta);
           }
 
           // Mostrar latencia calculada

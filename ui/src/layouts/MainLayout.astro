@@ -7,6 +7,11 @@ interface Props {
 }
 
 const { title = "ModelRouter" } = Astro.props;
+
+// Detectar página actual
+const currentPath = Astro.url.pathname;
+const isPlayground = currentPath === "/" || currentPath === "";
+const isMetrics = currentPath === "/metrics";
 ---
 
 <!doctype html>
@@ -30,13 +35,21 @@ const { title = "ModelRouter" } = Astro.props;
         <nav class="flex-1 space-y-2">
           <a
             href="/"
-            class="block px-4 py-2 rounded text-[#00f5ff] bg-[#1c273d] hover:bg-[#00f5ff]/10 transition-colors"
+            class={`block px-4 py-2 rounded transition-colors ${
+              isPlayground
+                ? "bg-[#1c273d] text-[#00f5ff] font-medium"
+                : "text-[#dae2fd] hover:bg-[#1c273d] hover:text-[#00f5ff]"
+            }`}
           >
             Playground
           </a>
           <a
             href="/metrics"
-            class="block px-4 py-2 rounded text-[#dae2fd] hover:bg-[#1c273d] hover:text-[#00f5ff] transition-colors"
+            class={`block px-4 py-2 rounded transition-colors ${
+              isMetrics
+                ? "bg-[#1c273d] text-[#00f5ff] font-medium"
+                : "text-[#dae2fd] hover:bg-[#1c273d] hover:text-[#00f5ff]"
+            }`}
           >
             Métricas
           </a>

@@ -112,7 +112,7 @@ import Button from "../components/ui/Button.astro";
         <!-- Response Content -->
         <div
           id="responseContent"
-          class="flex-1 overflow-auto bg-[#131b2e] rounded p-4 min-h-64 text-sm text-[#dae2fd] font-mono"
+          class="flex-1 overflow-auto bg-[#131b2e] rounded p-4 min-h-64 text-sm text-[#dae2fd] font-mono break-words overflow-x-hidden"
         >
           <p class="text-[#dae2fd]/50">La respuesta aparecerá aquí...</p>
         </div>
@@ -229,6 +229,10 @@ import Button from "../components/ui/Button.astro";
           const decoder = new TextDecoder();
           let buffer = "";
 
+          // Crear contenedor para el streaming
+          responseContent.innerHTML = '<div id="streamContent" class="break-words overflow-x-hidden whitespace-pre-wrap"></div>';
+          const streamContent = document.getElementById("streamContent");
+
           if (reader) {
             while (true) {
               const { done, value } = await reader.read();
@@ -244,7 +248,7 @@ import Button from "../components/ui/Button.astro";
                   if (data === "[DONE]") {
                     break;
                   }
-                  responseContent.innerHTML += data;
+                  streamContent.textContent += data;
                   responseContent.scrollTop = responseContent.scrollHeight;
                 }
               }
@@ -269,7 +273,7 @@ import Button from "../components/ui/Button.astro";
 
           const data = await response.json();
           loading.classList.add("hidden");
-          responseContent.innerHTML = `<div class="whitespace-pre-wrap">${data.text}</div>`;
+          responseContent.innerHTML = `<div class="break-words overflow-x-hidden whitespace-pre-wrap">${data.text}</div>`;
 
           // Show stats
           stats.classList.remove("hidden");
@@ -284,7 +288,7 @@ import Button from "../components/ui/Button.astro";
       } catch (error) {
         loading.classList.add("hidden");
         const errorMsg = error instanceof Error ? error.message : "Error desconocido";
-        responseContent.innerHTML = `<div class="text-[#ff4d4d]">Error: ${errorMsg}</div>`;
+        responseContent.innerHTML = `<div class="text-[#ff4d4d] break-words overflow-x-hidden">❌ Error: ${errorMsg}</div>`;
       } finally {
         sendBtn.disabled = false;
       }
@@ -307,6 +311,19 @@ import Button from "../components/ui/Button.astro";
 </script>
 
 <style>
+  #responseContent {
+    word-break: break-word;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  #responseContent div {
+    word-break: break-word;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;

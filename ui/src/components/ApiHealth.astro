@@ -2,34 +2,35 @@
 // Componente simple que verifica la salud de la API
 ---
 
-<script client:load>
+<script>
   async function checkHealth() {
     try {
       const apiUrl = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
       const apiKey = import.meta.env.PUBLIC_API_KEY;
 
+      console.log("[ApiHealth] Verificando salud de API en:", apiUrl);
+
       const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
 
       const response = await fetch(`${apiUrl}/health`, {
         headers,
+        signal: AbortSignal.timeout(5000),
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log("[ApiHealth] API Online. Providers:", data.providers);
+
         const healthBadge = document.getElementById("healthBadge");
         if (healthBadge) {
           healthBadge.innerHTML =
             '<span class="inline-flex items-center gap-2 text-green-400"><span class="w-2 h-2 bg-green-400 rounded-full"></span>API Online</span>';
         }
-        const providersList = document.getElementById("providersList");
-        if (providersList && data.providers) {
-          const providers = Object.entries(data.providers)
-            .map(([name, status]) => `${name}: ${status}`)
-            .join(", ");
-          providersList.textContent = providers;
-        }
+      } else {
+        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
+      console.error("[ApiHealth] Error:", error);
       const healthBadge = document.getElementById("healthBadge");
       if (healthBadge) {
         healthBadge.innerHTML =
@@ -38,7 +39,19 @@
     }
   }
 
-  checkHealth();
-  // Verificar cada 10 segundos
-  setInterval(checkHealth, 10000);
+  // Ejecutar inmediatamente cuando el script cargue
+  console.log("[ApiHealth] Script cargando...");
+
+  // Esperar a que el DOM esté listo
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("[ApiHealth] DOM listo, iniciando check");
+      checkHealth();
+      setInterval(checkHealth, 10000);
+    });
+  } else {
+    console.log("[ApiHealth] DOM ya listo, iniciando check");
+    checkHealth();
+    setInterval(checkHealth, 10000);
+  }
 </script>

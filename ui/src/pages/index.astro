@@ -11,19 +11,20 @@ import Button from "../components/ui/Button.astro";
         <div class="mb-6">
           <h3 class="text-lg font-bold text-[#00f5ff] mb-4">REQUEST</h3>
           <div class="space-y-4">
-            <!-- Model Selection -->
+            <!-- Provider Selection -->
             <div>
               <label class="block text-sm text-[#dae2fd]/80 mb-2"
-                >Modelo</label
+                >Proveedor</label
               >
               <select
-                id="model"
+                id="provider"
                 class="w-full bg-[#131b2e] border border-[#00f5ff]/30 text-[#dae2fd] rounded px-3 py-2 focus:outline-none focus:border-[#00f5ff]"
               >
                 <option value="">Auto (default)</option>
-                <option value="gpt-4">GPT-4</option>
-                <option value="claude-3">Claude 3</option>
-                <option value="groq-mixtral">Groq Mixtral</option>
+                <option value="groq">Groq</option>
+                <option value="openai">OpenAI</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="ollama">Ollama</option>
               </select>
             </div>
 
@@ -147,7 +148,7 @@ import Button from "../components/ui/Button.astro";
   function initPlayground() {
     const sendBtn = document.getElementById("sendBtn");
     const messageInput = document.getElementById("message");
-    const modelSelect = document.getElementById("model");
+    const providerSelect = document.getElementById("provider");
     const temperatureInput = document.getElementById("temperature");
     const tempValue = document.getElementById("tempValue");
     const maxTokensInput = document.getElementById("maxTokens");
@@ -160,7 +161,7 @@ import Button from "../components/ui/Button.astro";
     const statProvider = document.getElementById("statProvider");
     const statModel = document.getElementById("statModel");
 
-    if (!sendBtn || !messageInput || !modelSelect) {
+    if (!sendBtn || !messageInput || !providerSelect) {
       console.error("Elementos del DOM no encontrados");
       return;
     }
@@ -213,7 +214,7 @@ import Button from "../components/ui/Button.astro";
           max_tokens: parseInt(maxTokensInput.value),
           temperature: parseFloat(temperatureInput.value),
           stream: streamCheckbox.checked,
-          model: modelSelect.value || undefined,
+          provider: providerSelect.value || undefined,
         };
 
         if (streamCheckbox.checked) {

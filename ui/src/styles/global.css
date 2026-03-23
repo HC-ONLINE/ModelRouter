@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 /* @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"); */
 @plugin "@tailwindcss/typography";
 
@@ -18,5 +18,5 @@
   --color-text-bright: #ffffff;
   --color-text-muted: #dae2fd;
   /* --color-text-dim: rgba(218, 226, 253, 0.6); */ /* typography (Space Grotesk) */
-  --font-display: "Space Grotesk", sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
 }

@@ -1,0 +1,22 @@
+---
+interface Props {
+  icon: string;
+  label: string;
+  isActive?: boolean;
+  href?: string;
+}
+
+const { icon, label, isActive = false, href = "#" } = Astro.props;
+---
+
+<a
+  href={href}
+  class={`flex items-center gap-3 px-4 py-3 transition-all duration-200 border-l-[3px] border-transparent no-underline cursor-pointer ${
+    isActive
+      ? 'text-[var(--color-primary)] bg-[var(--color-surface-high)] border-l-[var(--color-primary)]'
+      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-bright)] hover:bg-[var(--color-surface-mid)]'
+  }`}
+>
+  <span class="text-xl flex items-center justify-center">{icon}</span>
+  <span class="text-sm font-medium tracking-wide uppercase">{label}</span>
+</a>

@@ -1,0 +1,32 @@
+---
+import Sidebar from "@components/sidebar/Sidebar.astro";
+import "@styles/global.css";
+
+interface Props {
+  title?: string;
+  activeItem?: string;
+}
+
+const { title = "Orchestrator", activeItem = "playground" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="ModelRouter playground" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} - ModelRouter</title>
+  </head>
+  <body>
+    <div class="flex h-screen overflow-hidden">
+      <Sidebar activeItem={activeItem} />
+
+        <main class="flex-1 overflow-y-auto overflow-x-hidden p-8">
+          <slot />
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

@@ -51,6 +51,14 @@ repos:
         files: ^api/.*\.py$
         exclude: ^tests/
 
+  # Prettier (Astro/JS/TS/CSS/MD)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        args: ["--config=.prettierrc"]
+        files: '\\.(astro|html|js|jsx|ts|tsx|css|md)$'
+
   # Pytest - Tests rápidos (solo si hay cambios en tests/)
   - repo: local
     hooks:

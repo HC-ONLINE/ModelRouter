@@ -1,0 +1,27 @@
+---
+import StatCard from '@components/stats/StatCard.astro';
+
+interface Stat {
+  label: string;
+  value: string;
+  color?: 'primary' | 'success' | 'warning' | 'error' | 'info';
+}
+
+interface Props {
+  stats?: Stat[];
+}
+
+// Stats por defecto (demo), serán reemplazados por datos de la API
+const defaultStats: Stat[] = [
+  { label: 'TOTAL TOKENS', value: '512', color: 'primary' },
+  { label: 'LATENCY', value: '42ms', color: 'primary' },
+  { label: 'COST (EST)', value: '$0.0004', color: 'success' },
+  { label: 'STATUS', value: 'SUCCESS', color: 'primary' },
+];
+
+const { stats = defaultStats } = Astro.props;
+---
+
+<div class="grid grid-cols-4 gap-4">
+  {stats.map((stat) => <StatCard label={stat.label} value={stat.value} color={stat.color} />)}
+</div>

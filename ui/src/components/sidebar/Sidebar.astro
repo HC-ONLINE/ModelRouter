@@ -1,45 +1,49 @@
 ---
-import SidebarItem from "./SidebarItem.astro";
-import SidebarFooter from "./SidebarFooter.astro";
+import SidebarItem from '@components/sidebar/SidebarItem.astro';
+import SidebarFooter from '@components/sidebar/SidebarFooter.astro';
 
 interface Props {
   activeItem?: string;
 }
 
-const { activeItem = "playground" } = Astro.props;
+const { activeItem = 'playground' } = Astro.props;
 
 // TODO: Replace icons with actual SVGs
 const menuItems = [
-  { id: "estado", label: "ESTADO", icon: "", href: "#" },
-  { id: "modelos", label: "MODELOS", icon: "", href: "#" },
-//  { id: "logs", label: "LOGS", icon: "", href: "#" },
-  { id: "playground", label: "PLAYGROUND", icon: "", href: "#" },
+  { id: 'estado', label: 'ESTADO', icon: '', href: '#' },
+  { id: 'modelos', label: 'MODELOS', icon: '', href: '#' },
+  //  { id: "logs", label: "LOGS", icon: "", href: "#" },
+  { id: 'playground', label: 'PLAYGROUND', icon: '', href: '#' },
 ];
 ---
 
-<aside class="flex flex-col w-60 h-screen bg-[var(--color-background)] border-r border-[var(--color-surface-high)] overflow-y-auto overflow-x-hidden">
+<aside
+  class="flex flex-col w-60 h-screen bg-[var(--color-background)] border-r border-[var(--color-surface-high)] overflow-y-auto overflow-x-hidden"
+>
   <div class="p-6 border-b border-[var(--color-surface-mid)]">
     <div class="flex items-center">
-        <p class="m-0 text-lg font-bold tracking-widest uppercase text-[var(--color-text-bright)]">
-          ModelRouter
-        </p>
+      <p class="m-0 text-lg font-bold tracking-widest uppercase text-[var(--color-text-bright)]">
+        ModelRouter
+      </p>
     </div>
   </div>
 
-    <nav class="flex-1 py-4">
+  <nav class="flex-1 py-4">
     <ul class="list-none m-0 p-0 flex flex-col w-full">
-        {menuItems.map((item) => (
-        <li key={item.id} class="w-full">
+      {
+        menuItems.map((item) => (
+          <li key={item.id} class="w-full">
             <SidebarItem
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            isActive={item.id === activeItem}
+              icon={item.icon}
+              label={item.label}
+              href={item.href}
+              isActive={item.id === activeItem}
             />
-        </li>
-        ))}
+          </li>
+        ))
+      }
     </ul>
-    </nav>
+  </nav>
 
   <SidebarFooter />
 </aside>

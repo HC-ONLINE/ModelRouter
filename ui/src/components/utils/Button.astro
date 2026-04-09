@@ -1,0 +1,42 @@
+---
+interface Props {
+  label: string;
+  variant?: 'primary' | 'secondary' | 'tertiary';
+  disabled?: boolean;
+  loading?: boolean;
+  icon?: string;
+  onClick?: string;
+  class?: string;
+}
+
+const {
+  label,
+  variant = 'primary',
+  disabled = false,
+  loading = false,
+  icon,
+  onClick,
+  class: customClass = '',
+} = Astro.props;
+
+const variantClass = {
+  primary:
+    'bg-[var(--color-primary)] text-[var(--color-background)] hover:bg-[var(--color-accent)] hover:shadow-[0_4px_12px_rgba(0,245,255,0.2)]',
+  secondary:
+    'bg-[var(--color-surface-mid)] text-[var(--color-text-bright)] border border-[var(--color-surface-high)] hover:bg-[var(--color-surface-high)]',
+  tertiary:
+    'bg-transparent text-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-[var(--color-primary)]/10',
+}[variant];
+
+const stateClass =
+  disabled || loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:scale-95';
+---
+
+<button
+  class={`flex items-center justify-center gap-2 px-4 py-3.5 rounded font-bold tracking-widest uppercase text-sm transition-all duration-200 ${variantClass} ${stateClass} ${customClass}`}
+  disabled={disabled || loading}
+  onclick={onClick}
+>
+  {loading ? <span class="animate-spin">⟳</span> : icon ? <span>{icon}</span> : null}
+  {label}
+</button>

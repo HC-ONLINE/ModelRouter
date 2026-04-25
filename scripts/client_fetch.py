@@ -7,6 +7,7 @@ y muestra la respuesta formateada.
 Uso:
   python scripts/client_fetch.py --message "Hola" --max-tokens 150
 """
+
 import argparse
 import json
 import os
@@ -29,9 +30,13 @@ def load_api_key() -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Prueba cliente fetch contra /chat")
-    parser.add_argument("--message", "-m", default="Explica qué es Redis", help="Mensaje del usuario")
+    parser.add_argument(
+        "--message", "-m", default="Explica qué es Redis", help="Mensaje del usuario"
+    )
     parser.add_argument("--max-tokens", "-n", type=int, default=150, help="Max tokens")
-    parser.add_argument("--url", "-u", default="http://localhost:8000/chat", help="URL del endpoint")
+    parser.add_argument(
+        "--url", "-u", default="http://localhost:8000/chat", help="URL del endpoint"
+    )
     args = parser.parse_args()
 
     api_key = load_api_key()

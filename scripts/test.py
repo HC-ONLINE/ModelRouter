@@ -1,6 +1,7 @@
 """
 Script de utilidad para ejecutar tests localmente con configuración adecuada.
 """
+
 import subprocess
 import sys
 
@@ -14,7 +15,7 @@ def run_tests():
         "-v",
         "--cov=api",
         "--cov-report=html",
-        "--cov-report=term-missing"
+        "--cov-report=term-missing",
     ]
 
     result = subprocess.run(cmd)

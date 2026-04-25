@@ -42,7 +42,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["api", "ui"]
+packages = ["api"]
 
 [tool.black]
 line-length = 88

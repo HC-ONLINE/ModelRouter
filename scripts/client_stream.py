@@ -8,6 +8,7 @@ en tiempo real.
 Uso:
     python scripts/client_stream.py --message "Hola" --max-tokens 150
 """
+
 import argparse
 import asyncio
 import json
@@ -42,7 +43,9 @@ async def stream_request(url: str, api_key: str, message: str, max_tokens: int) 
 
     async with httpx.AsyncClient() as client:
         try:
-            async with client.stream("POST", url, headers=headers, json=payload, timeout=60.0) as resp:
+            async with client.stream(
+                "POST", url, headers=headers, json=payload, timeout=60.0
+            ) as resp:
                 print(f"HTTP {resp.status_code}")
 
                 async for line in resp.aiter_lines():
@@ -67,9 +70,13 @@ async def stream_request(url: str, api_key: str, message: str, max_tokens: int) 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Cliente streaming contra /stream")
-    parser.add_argument("--message", "-m", default="Explica qué es Redis", help="Mensaje del usuario")
+    parser.add_argument(
+        "--message", "-m", default="Explica qué es Redis", help="Mensaje del usuario"
+    )
     parser.add_argument("--max-tokens", "-n", type=int, default=200, help="Max tokens")
-    parser.add_argument("--url", "-u", default="http://localhost:8000/stream", help="URL del endpoint")
+    parser.add_argument(
+        "--url", "-u", default="http://localhost:8000/stream", help="URL del endpoint"
+    )
     args = parser.parse_args()
 
     api_key = load_api_key()

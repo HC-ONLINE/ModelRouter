@@ -11,7 +11,6 @@ from prometheus_client import (
 )
 from fastapi import Response
 
-
 # ========== Contadores ==========
 
 # Requests totales por endpoint y método

@@ -1,6 +1,6 @@
 # ModelRouter
 
-**API HTTP asíncrona con streaming** que orquesta múltiples proveedores de LLM con fallback automático y observabilidad.
+**Asynchronous HTTP API with streaming** that orchestrates multiple LLM providers with automatic fallback and observability.
 
 [![CI/CD](https://github.com/HC-ONLINE/ModelRouter/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/HC-ONLINE/ModelRouter/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -9,22 +9,22 @@
 
 ---
 
-## Características Principales
+## Main Features
 
-- **Orquestación Multi-proveedor:** Fallback automático entre:
+- **Multi-provider Orchestration:** Automatic fallback between:
   - Groq
   - OpenRouter
   - OpenAI
   - Ollama
-- **Streaming Nativo:** Soporte para Server-Sent Events (SSE).
-- **Resiliencia:** Rate limiting, blacklist temporal y backoff exponencial.
-- **Production Ready:** Métricas Prometheus, logs estructurados y Dockerizado.
+- **Native Streaming:** Support for Server-Sent Events (SSE).
+- **Resilience:** Rate limiting, temporary blocklisting, and exponential backoff.
+- **Production Ready:** Includes Prometheus metrics, structured logging, and Docker deployment.
 
 ---
 
-## Inicio Rápido (Docker)
+## Quick Start (Docker)
 
-### 1. Configuración
+### 1. Configuration
 
 ```bash
 git clone https://github.com/HC-ONLINE/ModelRouter.git
@@ -32,29 +32,29 @@ cd ModelRouter
 cp .env.example .env
 ```
 
-Edita el archivo .env con tus claves API.
+Edit the `.env` file with your API keys.
 
 ---
 
-### 2. Despliegue
+### 2. Deployment
 
 ```bash
 docker-compose up --build
 ```
 
-La API estará lista en <http://localhost:8000>.
+The API will be available at <http://localhost:8000>.
 
 ---
 
-### Uso Básico
+### Basic Usage
 
-#### Chat (No-Streaming)
+#### Chat (Non-Streaming)
 
 ```bash
 curl -X POST http://localhost:8000/chat \
-  -H "Authorization: Bearer tu_api_key" \
+  -H "Authorization: Bearer your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"messages": [{"role": "user", "content": "Hola"}], "provider": "groq"}'
+  -d '{"messages": [{"role": "user", "content": "Hello"}], "provider": "groq"}'
 ```
 
 ---
@@ -63,58 +63,60 @@ curl -X POST http://localhost:8000/chat \
 
 ```bash
 curl -N -X POST http://localhost:8000/stream \
-  -H "Authorization: Bearer tu_api_key" \
-  -d '{"messages": [{"role": "user", "content": "Cuenta un cuento"}]}'
+  -H "Authorization: Bearer your_api_key" \
+  -d '{"messages": [{"role": "user", "content": "Tell a story"}]}'
 ```
 
 ---
 
-### Documentación Detallada
+### Detailed Documentation
 
-- [Arquitectura](docs/architecture.md) - Cómo funciona internamente.
-- [Configuración](docs/configuration.md) - Variables de entorno y rate limits.
-- [Ejemplos de Uso](docs/examples.md) - Ejemplos con `curl` y `fetch`.
-- [Desarrollo](docs/development.md) - Guía para contribuir, tests y linting.
-- [Observabilidad](docs/observability.md) - Métricas y Logs.
-- [Seguridad](docs/security.md) - Notas de seguridad y legal.
+- [Architecture](docs/architecture.md) - How it works internally.
+- [Configuration](docs/configuration.md) - Environment variables and rate limits.
+- [Usage Examples](docs/examples.md) - Examples using `curl` and `fetch`.
+- [Development](docs/development.md) - Contribution guide, tests and linting.
+- [Observability](docs/observability.md) - Metrics and logs.
+- [Security](docs/security.md) - Security and legal notes.
 
-Estos documentos están en la carpeta `docs/`.
+These documents are located in the `docs/` folder.
 
 ---
 
-### Estructura del Proyecto
+### Project Structure
 
 ```plaintext
 ModelRouter/
-├── api/                # Lógica central (FastAPI, Router, Orchestrator)
+├── api/                # Core logic (FastAPI, Router, Orchestrator)
 ├── api/providers/      # Adapters (Groq, OpenRouter, Ollama)
-├── api/infra/          # Clientes HTTP y Redis
-├── tests/              # Suite de pruebas
-├── docs/               # Documentación técnica
+├── api/infra/          # HTTP clients and Redis integrations
+├── tests/              # Test suite
+├── docs/               # Technical documentation
 └── docker-compose.yml
 ```
 
 ---
 
-## Licencia
+## License
 
-Este proyecto está bajo la Licencia Apache-2.0 (Apache License 2.0). Ver [LICENSE](LICENSE) para más detalles.
-
----
-
-## Disclaimer Legal
-
-Este proyecto es para **uso personal**. Asegúrate de:
-
-- Leer y cumplir los **Terms of Service** de los proveedores usados
-- No usar rotación de proveedores para **evadir límites** de uso
-- Respetar **rate limits** y políticas de cada proveedor
-- No almacenar/procesar datos sensibles sin las medidas de seguridad apropiadas
-
-**El autor no se hace responsable del uso indebido de esta herramienta.**
+This project is licensed under the Apache-2.0 License. See [LICENSE](LICENSE) for details.
 
 ---
 
-## Hecho con ❤️ por HC-ONLINE. Ver [ROADMAP.md](ROADMAP.md) para próximos pasos
+## Legal Disclaimer
 
-⭐ **Si te resulta útil, deja una estrella en GitHub** ⭐
+This project is intended for individual or self-hosted use. Make sure to:
+
+- Read and comply with the **Terms of Service** of the providers you use
+- Do not use provider rotation to **evade usage limits**
+- Respect rate limits and policies of each provider
+- Do not store/process sensitive data without appropriate security measures
+
+**The author assumes no liability for misuse of this software.**
+
+---
+
+## Community
+
+Made with ❤️ by HC-ONLINE. See [ROADMAP.md](ROADMAP.md) for next steps
+
+⭐ **If you find it useful, please give it a star on GitHub** ⭐

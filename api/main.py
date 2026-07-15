@@ -20,6 +20,7 @@ from api.providers.base import ProviderAdapter
 from api.providers.groq_adapter import GroqAdapter
 from api.providers.openrouter_adapter import OpenRouterAdapter
 from api.providers.openai_adapter import OpenAIAdapter
+from api.providers.gemini_adapter import GeminiAdapter
 from api.providers.ollama_adapter import OllamaAdapter
 from api.router import Router
 from api.orchestrator import Orchestrator
@@ -90,6 +91,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("Proveedor OpenAI configurado")
     else:
         logger.warning("OPENAI_API_KEY no configurada, OpenAI no estará disponible")
+
+    if settings.gemini_api_key:
+        gemini_adapter = GeminiAdapter(
+            http_client=http_client,
+            api_key=settings.gemini_api_key,
+            base_url=settings.gemini_base_url,
+            timeout=settings.provider_timeout,
+            default_model=settings.gemini_default_model,
+        )
+        providers.append(gemini_adapter)
+        logger.info("Proveedor Gemini configurado")
+    else:
+        logger.warning("GEMINI_API_KEY no configurada, Gemini no estará disponible")
 
     # Ollama: siempre intentar configurar (no requiere API key obligatoria)
     try:

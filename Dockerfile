@@ -1,5 +1,5 @@
 # Imagen base con Python 3.11 (Alpine es más ligera y segura)
-FROM python:3.11-slim-bookworm as builder
+FROM python:3.11-slim-bookworm AS builder
 
 # Variables de entorno para Python
 ENV PYTHONUNBUFFERED=1 \

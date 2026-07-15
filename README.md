@@ -15,6 +15,7 @@
   - Groq
   - OpenRouter
   - OpenAI
+  - Gemini
   - Ollama
 - **Native Streaming:** Support for Server-Sent Events (SSE).
 - **Resilience:** Rate limiting, temporary blocklisting, and exponential backoff.

@@ -5,6 +5,7 @@ Tests para ProviderAdapters.
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+from api.providers.gemini_adapter import GeminiAdapter
 from api.providers.groq_adapter import GroqAdapter
 from api.providers.openrouter_adapter import OpenRouterAdapter
 from api.schemas import ChatRequest, ProviderError, Message
@@ -111,6 +112,60 @@ async def test_openrouter_adapter_generate_success(mock_http_client, sample_requ
 
     assert response.text == "Respuesta de OpenRouter"
     assert response.provider == "openrouter"
+
+
+@pytest.mark.asyncio
+async def test_gemini_adapter_generate_success(mock_http_client, sample_request):
+    """Test: GeminiAdapter genera respuesta exitosamente."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "candidates": [{"content": {"parts": [{"text": "Hola desde Gemini"}]}}],
+        "usageMetadata": {"promptTokenCount": 6, "candidatesTokenCount": 4},
+    }
+    mock_response.raise_for_status = MagicMock()
+
+    mock_http_client.post = AsyncMock(return_value=mock_response)
+
+    adapter = GeminiAdapter(
+        http_client=mock_http_client,
+        api_key="test-key",
+        base_url="https://generativelanguage.googleapis.com/v1beta",
+        timeout=30.0,
+    )
+
+    response = await adapter.generate(sample_request)
+
+    assert response.text == "Hola desde Gemini"
+    assert response.provider == "gemini"
+    assert response.provider_meta["tokens_total"] == 10
+
+
+@pytest.mark.asyncio
+async def test_gemini_adapter_stream_success(mock_http_client, sample_request):
+    """Test: GeminiAdapter devuelve chunks de streaming correctamente."""
+
+    async def mock_stream(**kwargs):
+        for chunk in [
+            b'{"candidates":[{"content":{"parts":[{"text":"Hola"}]}}]}\n',
+            b'{"candidates":[{"content":{"parts":[{"text":" mundo"}]}}]}\n',
+        ]:
+            yield chunk
+
+    mock_http_client.stream_post = mock_stream
+
+    adapter = GeminiAdapter(
+        http_client=mock_http_client,
+        api_key="test-key",
+        base_url="https://generativelanguage.googleapis.com/v1beta",
+        timeout=30.0,
+    )
+
+    chunks = []
+    async for chunk in adapter.stream(sample_request):
+        chunks.append(chunk)
+
+    assert chunks == ["Hola", " mundo"]
 
 
 @pytest.mark.asyncio

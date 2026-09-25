@@ -1,13 +1,15 @@
 # Imagen base con Python 3.11 (Alpine es más ligera y segura)
 FROM python:3.11-slim-bookworm AS builder
 
+# uv reemplaza pip para instalar dependencias (misma herramienta que local y CI)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 # Variables de entorno para Python
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PYTHONDONTWRITEBYTECODE=1
 
-# Directorio de trabajo
+# Directorio de trabajo; la etapa runtime usa la misma ruta para que las
+# rutas absolutas registradas dentro de .venv sigan siendo válidas
 WORKDIR /app
 
 # Actualizar paquetes del sistema para parches de seguridad
@@ -15,23 +17,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar pyproject y usarlo para instalar dependencias
-COPY pyproject.toml .
+# Copiar pyproject + uv.lock e instalar dependencias primero (cache de capas)
+# README.md es requerido por los metadatos de pyproject.toml
+COPY pyproject.toml uv.lock README.md ./
+RUN UV_PYTHON_DOWNLOADS=never uv sync --locked --no-install-project
+
+# Copiar código fuente e instalar el proyecto
 COPY api/ ./api/
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir .
+RUN UV_PYTHON_DOWNLOADS=never uv sync --locked
 
 # Stage 2: Runtime
 FROM python:3.11-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
-# Copiar dependencias instaladas
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copiar el .venv construido en el builder (misma ruta absoluta)
+COPY --from=builder /app/.venv /app/.venv
 
 # Copiar código fuente
 COPY api/ ./api/

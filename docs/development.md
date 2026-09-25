@@ -5,50 +5,42 @@ Guía rápida para contribución y desarrollo local.
 ## Entorno recomendado
 
 - Python 3.11+
-- Virtualenv
+- [uv](https://docs.astral.sh/uv/) (gestor de entornos y dependencias)
 
 ## Pasos rápidos
 
 ```bash
-# Crear entorno virtual
-python -m venv .venv
-# Windows
-.\.venv\Scripts\activate
-# Unix
-source .venv/bin/activate
-# Instalar dependencias
-python -m pip install --upgrade pip
-pip install -e '.[dev]'
+# Crear .venv e instalar dependencias (uv gestiona el entorno)
+uv sync --all-extras
 
 # Levantar Redis para desarrollo
 docker run -d -p 6379:6379 redis:7-alpine
 
 # Ejecutar la app
-
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Tests
 
 ```bash
 # Ejecutar todos los tests
-pytest -v
+uv run pytest -v
 
 # Tests específicos
-pytest tests/test_router.py -v
+uv run pytest tests/test_router.py -v
 ```
 
 ## Formato y lint
 
 ```bash
 # Formatear
-black .
+uv run black .
 # Lint
-flake8 . --max-line-length=100
+uv run flake8 . --max-line-length=100
 # Type check
-mypy . --ignore-missing-imports
+uv run mypy . --ignore-missing-imports
 ```
 
 ## Notas
 
-- Use `scripts/test.py` para utilidades comunes (lint, tests).
+- Use `uv run scripts/test.py` para utilidades comunes (lint, tests).

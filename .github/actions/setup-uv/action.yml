@@ -1,0 +1,18 @@
+name: "Setup uv environment"
+description: "Instala uv y sincroniza las dependencias con cache"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Instalar uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        python-version: "3.11"
+        enable-cache: true
+        cache-dependency-glob: |
+          **/uv.lock
+          **/pyproject.toml
+
+    - name: Instalar dependencias
+      shell: bash
+      run: uv sync --all-extras

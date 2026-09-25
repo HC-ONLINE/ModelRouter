@@ -15,17 +15,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: ./.github/actions/setup-python
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
 
     - name: Black
-      run: black --check api/ tests/
+      run: uv run black --check api/ tests/
 
     - name: Flake8
-      run: flake8 api/ tests/
+      run: uv run flake8 api/ tests/
 
     - name: MyPy
-      run: mypy api/
+      run: uv run mypy api/
 
   test:
     name: Tests unitarios e integración
@@ -45,8 +45,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: ./.github/actions/setup-python
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
 
     - name: Ejecutar tests
       env:
@@ -55,7 +55,7 @@ jobs:
         OPENROUTER_API_KEY: test-key
         API_KEY: test-api-key
       run: |
-        pytest --cov=api --cov-report=xml --cov-report=term-missing
+        uv run pytest --cov=api --cov-report=xml --cov-report=term-missing
 
     - name: Subir cobertura
       uses: codecov/codecov-action@v4.6.0

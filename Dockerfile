@@ -1,5 +1,7 @@
-# Imagen base con Python 3.11 (Alpine es más ligera y segura)
-FROM python:3.11-slim-bookworm AS builder
+# Imagen base con Python 3.11 sobre Debian 13 (trixie). Debian 12 (bookworm)
+# ya es oldstable y no recibe parches para la mayoría de los CVE del SO, por lo
+# que `apt-get upgrade` solo no reduce el escaneo de Trivy.
+FROM python:3.11-slim-trixie AS builder
 
 # uv reemplaza pip para instalar dependencias (misma herramienta que local y CI)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -12,7 +14,8 @@ ENV PYTHONUNBUFFERED=1 \
 # rutas absolutas registradas dentro de .venv sigan siendo válidas
 WORKDIR /app
 
-# Actualizar paquetes del sistema para parches de seguridad
+# Paquetes del sistema necesarios para compilar (solo en builder, esta capa
+# se descarta y no forma parte de la imagen final)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
@@ -27,13 +30,22 @@ COPY api/ ./api/
 RUN UV_PYTHON_DOWNLOADS=never uv sync --locked
 
 # Stage 2: Runtime
-FROM python:3.11-slim-bookworm
+FROM python:3.11-slim-trixie
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
+
+# Parchar el SO de la imagen runtime, que es la capa que Trivy escanea en el
+# CI. No reduce los CVE actuales (Debian ya publicó todo lo disponible), pero
+# evita que la imagen acumule vulnerabilidades si se reconstruye sin tirar la
+# caché de capas.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copiar el .venv construido en el builder (misma ruta absoluta)
 COPY --from=builder /app/.venv /app/.venv

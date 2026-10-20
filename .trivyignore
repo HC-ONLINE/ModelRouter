@@ -1,11 +1,6 @@
 # Ignorar vulnerabilidades específicas
 # Formato: CVE-YYYY-XXXXX
 
-# CVE-2025-62727: Starlette DoS via Range header merging
-# Razón: FastAPI 0.115.6 aún no soporta Starlette 0.49.1+
-# TODO: Actualizar cuando FastAPI soporte Starlette 0.49.1+
-CVE-2025-62727
-
 # Vulnerabilidades de la imagen base Debian que no son fixeables
 # CVE-2025-68973: GnuPG - affected, sin fix disponible
 CVE-2025-68973
